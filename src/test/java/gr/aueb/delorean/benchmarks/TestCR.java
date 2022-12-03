@@ -1,5 +1,6 @@
-package gr.aueb.delorean.simpiece.benchmarks;
+package gr.aueb.delorean.benchmarks;
 
+import gr.aueb.delorean.util.TimeSeries;
 import gr.aueb.delorean.pmcmr.PMCMRCompressor;
 import gr.aueb.delorean.pmcmr.PMCMRDecompressor;
 import gr.aueb.delorean.pmcmr.PMCMREncoder;
@@ -8,8 +9,7 @@ import gr.aueb.delorean.simpiece.SimPieceCompressor;
 import gr.aueb.delorean.simpiece.SimPieceDecompressor;
 import gr.aueb.delorean.simpiece.SimPieceEncoder;
 import gr.aueb.delorean.simpiece.SimPieceSegment;
-import gr.aueb.delorean.simpiece.benchmarks.util.TimeSeries;
-import gr.aueb.delorean.simpiece.benchmarks.util.TimeSeriesReader;
+import gr.aueb.delorean.util.TimeSeriesReader;
 import gr.aueb.delorean.swingfilter.SwingFilterCompressor;
 import gr.aueb.delorean.swingfilter.SwingFilterDecompressor;
 import gr.aueb.delorean.swingfilter.SwingFilterEncoder;

@@ -1,6 +1,4 @@
-package gr.aueb.delorean.simpiece.benchmarks.util;
-
-import gr.aueb.delorean.util.Point;
+package gr.aueb.delorean.util;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

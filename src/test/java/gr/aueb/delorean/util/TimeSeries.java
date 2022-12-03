@@ -1,4 +1,4 @@
-package gr.aueb.delorean.simpiece.benchmarks.util;
+package gr.aueb.delorean.util;
 
 import gr.aueb.delorean.util.Point;
 
