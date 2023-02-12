@@ -1,20 +1,11 @@
 package gr.aueb.delorean.benchmarks;
 
-import gr.aueb.delorean.util.TimeSeries;
-import gr.aueb.delorean.pmcmr.PMCMRCompressor;
-import gr.aueb.delorean.pmcmr.PMCMRDecompressor;
-import gr.aueb.delorean.pmcmr.PMCMREncoder;
-import gr.aueb.delorean.pmcmr.PMCMRSegment;
-import gr.aueb.delorean.simpiece.SimPieceCompressor;
-import gr.aueb.delorean.simpiece.SimPieceDecompressor;
-import gr.aueb.delorean.simpiece.SimPieceEncoder;
-import gr.aueb.delorean.simpiece.SimPieceSegment;
-import gr.aueb.delorean.util.TimeSeriesReader;
-import gr.aueb.delorean.swingfilter.SwingFilterCompressor;
-import gr.aueb.delorean.swingfilter.SwingFilterDecompressor;
-import gr.aueb.delorean.swingfilter.SwingFilterEncoder;
-import gr.aueb.delorean.swingfilter.SwingFilterSegment;
+import gr.aueb.delorean.pmcmr.PMCMR;
+import gr.aueb.delorean.simpiece.SimPiece;
+import gr.aueb.delorean.swingfilter.SwingFilter;
 import gr.aueb.delorean.util.Point;
+import gr.aueb.delorean.util.TimeSeries;
+import gr.aueb.delorean.util.TimeSeriesReader;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -23,20 +14,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestCR {
     private long PMCMR(List<Point> ts, double epsilon) {
-        List<PMCMRSegment> segments = PMCMRCompressor.filter(ts, epsilon);
+        PMCMR pmcmr = new PMCMR(ts, epsilon);
+        byte[] binary = pmcmr.toByteArray();
 
-        byte[] binary = PMCMREncoder.getBinary(segments);
         long compressedSize = binary.length;
-        segments = PMCMREncoder.readBinary(binary);
 
-        PMCMRDecompressor d = new PMCMRDecompressor(segments);
-        for (Point point : ts) {
-            Double decompressedValue = d.readValue();
+        pmcmr = new PMCMR(binary);
+        List<Point> tsDecompressed = pmcmr.decompress();
+        for (int i = 0; i < ts.size(); i++) {
             assertEquals(
-                    point.getValue(),
-                    decompressedValue,
+                    ts.get(i).getValue(),
+                    tsDecompressed.get(i).getValue(),
                     1.1 * epsilon,
-                    "Value did not match for timestamp " + point.getTimestamp()
+                    "Value did not match for timestamp " + ts.get(i).getTimestamp()
             );
         }
 
@@ -45,20 +35,19 @@ public class TestCR {
 
 
     private long Swing(List<Point> ts, double epsilon) {
-        List<SwingFilterSegment> segments = SwingFilterCompressor.filter(ts, epsilon);
+        SwingFilter swingFilter = new SwingFilter(ts, epsilon);
+        byte[] binary = swingFilter.toByteArray();
 
-        byte[] binary = SwingFilterEncoder.getBinary(segments);
         long compressedSize = binary.length;
-        segments = SwingFilterEncoder.readBinary(binary);
 
-        SwingFilterDecompressor d = new SwingFilterDecompressor(segments);
-        for (Point point : ts) {
-            double decompressedValue = d.readValue();
+        swingFilter = new SwingFilter(binary);
+        List<Point> tsDecompressed = swingFilter.decompress();
+        for (int i = 0; i < ts.size(); i++) {
             assertEquals(
-                    point.getValue(),
-                    decompressedValue,
+                    ts.get(i).getValue(),
+                    tsDecompressed.get(i).getValue(),
                     1.1 * epsilon,
-                    "Value did not match for timestamp " + point.getTimestamp()
+                    "Value did not match for timestamp " + ts.get(i).getTimestamp()
             );
         }
 
@@ -67,21 +56,19 @@ public class TestCR {
 
 
     private long SimPiece(List<Point> ts, double epsilon) {
-        List<SimPieceSegment> segments = SimPieceCompressor.filter(ts, epsilon);
-        segments = SimPieceCompressor.mergeSegments(segments);
+        SimPiece simPiece = new SimPiece(ts, epsilon);
+        byte[] binary = simPiece.toByteArray();
 
-        byte[] binary = SimPieceEncoder.getBinary(epsilon, segments);
         long compressedSize = binary.length;
-        segments = SimPieceEncoder.readBinary(binary);
 
-        SimPieceDecompressor simPieceDecompressor = new SimPieceDecompressor(segments);
-        for (Point point : ts) {
-            double decompressedValue = simPieceDecompressor.readValue();
+        simPiece = new SimPiece(binary);
+        List<Point> tsDecompressed = simPiece.decompress();
+        for (int i = 0; i < ts.size(); i++) {
             assertEquals(
-                    point.getValue(),
-                    decompressedValue,
+                    ts.get(i).getValue(),
+                    tsDecompressed.get(i).getValue(),
                     1.1 * epsilon,
-                    "Value did not match for timestamp " + point.getTimestamp()
+                    "Value did not match for timestamp " + ts.get(i).getTimestamp()
             );
         }
 
@@ -97,11 +84,14 @@ public class TestCR {
 
         String delimiter = ",";
         final String[] filenames = {
-                "/Lightning.csv.gz",
-                "/Wafer.csv.gz",
-                "/MoteStrain.csv.gz",
                 "/Cricket.csv.gz",
                 "/FaceFour.csv.gz",
+                "/Lightning.csv.gz",
+                "/MoteStrain.csv.gz",
+                "/Wafer.csv.gz",
+                "/WindSpeed.csv.gz",
+                "/WindDirection.csv.gz",
+                "/Pressure.csv.gz"
         };
 
         for (String filename : filenames) {

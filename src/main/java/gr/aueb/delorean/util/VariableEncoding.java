@@ -23,8 +23,12 @@ public class VariableEncoding {
     }
 
     public static int readIntFromStream(ByteArrayInputStream inputStream) throws IOException {
+        byte[] byteArray = new byte[Integer.BYTES];
+        int k = inputStream.read(byteArray);
+        if (k != Integer.BYTES)
+            throw new IOException();
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-        buffer.put(inputStream.readNBytes(Integer.BYTES));
+        buffer.put(byteArray);
         buffer.flip();
 
         return buffer.getInt();
@@ -39,8 +43,12 @@ public class VariableEncoding {
     }
 
     public static long readUIntFromStream(ByteArrayInputStream inputStream) throws IOException {
+        byte[] byteArray = new byte[Integer.BYTES];
+        int k = inputStream.read(byteArray);
+        if (k != Integer.BYTES)
+            throw new IOException();
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-        buffer.put(inputStream.readNBytes(Integer.BYTES));
+        buffer.put(byteArray);
         buffer.flip();
 
         return buffer.getInt() & 0xffffffffL;
@@ -53,8 +61,12 @@ public class VariableEncoding {
     }
 
     public static short readShortFromStream(ByteArrayInputStream inputStream) throws IOException {
+        byte[] byteArray = new byte[Short.BYTES];
+        int k = inputStream.read(byteArray);
+        if (k != Short.BYTES)
+            throw new IOException();
         ByteBuffer buffer = ByteBuffer.allocate(Short.BYTES);
-        buffer.put(inputStream.readNBytes(Short.BYTES));
+        buffer.put(byteArray);
         buffer.flip();
 
         return buffer.getShort();
@@ -70,8 +82,12 @@ public class VariableEncoding {
     }
 
     public static int readUShortFromStream(ByteArrayInputStream inputStream) throws IOException {
+        byte[] byteArray = new byte[Short.BYTES];
+        int k = inputStream.read(byteArray);
+        if (k != Short.BYTES)
+            throw new IOException();
         ByteBuffer buffer = ByteBuffer.allocate(Short.BYTES);
-        buffer.put(inputStream.readNBytes(Short.BYTES));
+        buffer.put(byteArray);
         buffer.flip();
 
         int number = (short) (buffer.get() & 0xff);
@@ -89,8 +105,12 @@ public class VariableEncoding {
     }
 
     public static short readUByteFromStream(ByteArrayInputStream inputStream) throws IOException {
+        byte[] byteArray = new byte[Byte.BYTES];
+        int k = inputStream.read(byteArray);
+        if (k != Byte.BYTES)
+            throw new IOException();
         ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES);
-        buffer.put(inputStream.readNBytes(Byte.BYTES));
+        buffer.put(byteArray);
         buffer.flip();
 
         return (short) (buffer.get() & 0xff);
