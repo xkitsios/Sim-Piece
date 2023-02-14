@@ -8,13 +8,21 @@ import gr.aueb.delorean.util.TimeSeries;
 import gr.aueb.delorean.util.TimeSeriesReader;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TestCR {
+public class TestSimPiece {
+    private Duration duration;
+
     private long PMCMR(List<Point> ts, double epsilon) {
+        duration = Duration.ZERO;
+        Instant start = Instant.now();
         PMCMR pmcmr = new PMCMR(ts, epsilon);
+        duration = Duration.between(start, Instant.now());
+
         byte[] binary = pmcmr.toByteArray();
 
         long compressedSize = binary.length;
@@ -35,7 +43,10 @@ public class TestCR {
 
 
     private long Swing(List<Point> ts, double epsilon) {
+        duration = Duration.ZERO;
+        Instant start = Instant.now();
         SwingFilter swingFilter = new SwingFilter(ts, epsilon);
+        duration = Duration.between(start, Instant.now());
         byte[] binary = swingFilter.toByteArray();
 
         long compressedSize = binary.length;
@@ -56,7 +67,10 @@ public class TestCR {
 
 
     private long SimPiece(List<Point> ts, double epsilon) {
+        duration = Duration.ZERO;
+        Instant start = Instant.now();
         SimPiece simPiece = new SimPiece(ts, epsilon);
+        duration = Duration.between(start, Instant.now());
         byte[] binary = simPiece.toByteArray();
 
         long compressedSize = binary.length;
@@ -77,7 +91,7 @@ public class TestCR {
 
 
     @Test
-    public void TestCR() {
+    public void TestSimPiece() {
         double epsilonStart = 0.005;
         double epsilonStep = 0.005;
         double epsilonEnd = 0.05;
@@ -98,20 +112,20 @@ public class TestCR {
             System.out.println(filename);
             TimeSeries ts = TimeSeriesReader.getTimeSeries(getClass().getResourceAsStream(filename), delimiter);
 
-            System.out.println("PMCMR");
+            System.out.println("Sim-Piece");
             for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
-                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\n",
-                        epsilonPct * 100, (double) ts.size / PMCMR(ts.data, ts.range * epsilonPct));
+                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n",
+                        epsilonPct * 100, (double) ts.size / SimPiece(ts.data, ts.range * epsilonPct), duration.toMillis());
 
             System.out.println("Swing");
             for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
-                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\n",
-                        epsilonPct * 100, (double) ts.size / Swing(ts.data, ts.range * epsilonPct));
+                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n",
+                        epsilonPct * 100, (double) ts.size / Swing(ts.data, ts.range * epsilonPct), duration.toMillis());
 
-            System.out.println("Sim-Piece");
+            System.out.println("PMCMR");
             for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
-                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\n",
-                        epsilonPct * 100, (double) ts.size / SimPiece(ts.data, ts.range * epsilonPct));
+                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n",
+                        epsilonPct * 100, (double) ts.size / PMCMR(ts.data, ts.range * epsilonPct), duration.toMillis());
 
             System.out.println();
         }
