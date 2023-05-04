@@ -24,59 +24,62 @@ public class SimPiece {
         readByteArray(bytes);
     }
 
-    private static double quantization(double b, double epsilon) {
+    private double quantization(double b, double epsilon) {
         return ((int) (b / epsilon)) * epsilon;
     }
 
     private void compress(List<Point> points, double epsilon) {
-        List<Integer> recordings = new ArrayList<>();
-        double aMin = Double.MIN_VALUE;
-        double aMax = Double.MAX_VALUE;
+        if (points.isEmpty())
+            return;
 
-        int start = (int) points.get(0).getTimestamp();
-        int idx = start;
+        double aMax = Double.MAX_VALUE;
+        double aMin = Double.MIN_VALUE;
+
+        long segmentSize = 1;
+        long segmentInitTimestamp = points.get(0).getTimestamp();
+        double segmentInitValue = points.get(0).getValue();
+        double b = quantization(segmentInitValue, epsilon);
+
         for (Point point : points) {
+            if (point == points.get(0))
+                continue;
+            segmentSize++;
             double upValue = point.getValue() + epsilon;
             double downValue = point.getValue() - epsilon;
 
-            if (recordings.isEmpty()) {
-                aMin = Double.MIN_VALUE;
-                aMax = Double.MAX_VALUE;
-                recordings.add(idx++);
+
+            if (segmentSize > 2) {
+                double upLim = aMax * (point.getTimestamp() - segmentInitTimestamp) + b;
+                double downLim = aMin * (point.getTimestamp() - segmentInitTimestamp) + b;
+                if (downValue > upLim || upValue < downLim) {
+                    segments.add(new SimPieceSegment(segmentInitTimestamp, aMin, aMax, b));
+                    segmentSize = 1;
+                    segmentInitTimestamp = point.getTimestamp();
+                    segmentInitValue = point.getValue();
+                    b = quantization(segmentInitValue, epsilon);
+                    continue;
+                }
+            }
+
+            double aMaxTemp = (upValue - quantization(segmentInitValue, epsilon)) /
+                    (point.getTimestamp() - segmentInitTimestamp);
+            double aMinTemp = (downValue - quantization(segmentInitValue, epsilon)) /
+                    (point.getTimestamp() - segmentInitTimestamp);
+
+            if (segmentSize == 2) {
+                aMax = aMaxTemp;
+                aMin = aMinTemp;
             } else {
-                double b = quantization(points.get(recordings.get(0) - start).getValue(), epsilon);
-                if (recordings.size() > 1) {
-                    double upLim = aMax * (idx - recordings.get(0)) + b;
-                    double downLim = aMin * (idx - recordings.get(0)) + b;
-                    if (downValue > upLim || upValue < downLim) {
-                        segments.add(new SimPieceSegment(recordings.get(0), aMin, aMax, b));
-                        recordings.clear();
-                        recordings.add(idx++);
-                        continue;
-                    }
-                }
-
-                double aMaxTemp = (upValue - quantization(points.get(recordings.get(0) - start).getValue(), epsilon)) / (idx - recordings.get(0));
-                double aMinTemp = (downValue - quantization(points.get(recordings.get(0) - start).getValue(), epsilon)) / (idx - recordings.get(0));
-
-                if (recordings.size() == 1) {
-                    aMax = aMaxTemp;
-                    aMin = aMinTemp;
-                } else {
-                    double upLim = aMax * (idx - recordings.get(0)) + b;
-                    double downLim = aMin * (idx - recordings.get(0)) + b;
-                    if (upValue < upLim)
-                        aMax = Math.max(aMaxTemp, aMin);
-                    if (downValue > downLim)
-                        aMin = Math.min(aMinTemp, aMax);
-                }
-                recordings.add(idx++);
+                double upLim = aMax * (point.getTimestamp() - segmentInitTimestamp) + b;
+                double downLim = aMin * (point.getTimestamp() - segmentInitTimestamp) + b;
+                if (upValue < upLim)
+                    aMax = Math.max(aMaxTemp, aMin);
+                if (downValue > downLim)
+                    aMin = Math.min(aMinTemp, aMax);
             }
         }
-        if (!recordings.isEmpty()) {
-            double b = quantization(points.get(recordings.get(0) - start).getValue(), epsilon);
-            segments.add(new SimPieceSegment(recordings.get(0), aMin, aMax, b));
-        }
+        if (segmentSize != 0)
+            segments.add(new SimPieceSegment(segmentInitTimestamp, aMin, aMax, b));
     }
 
 
