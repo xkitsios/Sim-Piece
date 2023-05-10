@@ -2,6 +2,7 @@ package gr.aueb.delorean.simpiece;
 
 import com.github.luben.zstd.Zstd;
 import gr.aueb.delorean.util.Point;
+import gr.aueb.delorean.util.VariableByte;
 import gr.aueb.delorean.util.VariableEncoding;
 
 import java.io.ByteArrayInputStream;
@@ -182,8 +183,13 @@ public class SimPiece {
                 for (Map.Entry<Double, ArrayList<Long>> aPerB : segmentPerB.getValue().entrySet()) {
                     VariableEncoding.writeFloatToStream(aPerB.getKey().floatValue(), outputStream);
                     VariableEncoding.writeUShortWithFlagToStream((short) aPerB.getValue().size(), outputStream);
-                    for (Long timestamp : aPerB.getValue())
-                        VariableEncoding.writeUIntToStream(timestamp.intValue(), outputStream);
+                    long previousTS = 0;
+                    for (Long timestamp : aPerB.getValue()) {
+                        VariableByte.write((int) (timestamp - previousTS), outputStream);
+                        previousTS = timestamp;
+                    }
+//                    for (Long timestamp : aPerB.getValue())
+//                        VariableEncoding.writeUIntToStream(timestamp.intValue(), outputStream);
                 }
             }
             VariableEncoding.writeUIntToStream(lastTimeStamp, outputStream);
@@ -213,10 +219,15 @@ public class SimPiece {
                 for (int j = 0; j < numA; j++) {
                     float a = VariableEncoding.readFloatFromStream(inputStream);
                     int numTimestamps = VariableEncoding.readUShortWithFlagFromStream(inputStream);
+                    long timestamp = 0;
                     for (int k = 0; k < numTimestamps; k++) {
-                        long timestamp = VariableEncoding.readUIntFromStream(inputStream);
+                        timestamp += VariableByte.read(inputStream);
                         segments.add(new SimPieceSegment(timestamp, a, b));
                     }
+//                    for (int k = 0; k < numTimestamps; k++) {
+//                        long timestamp = VariableEncoding.readUIntFromStream(inputStream);
+//                        segments.add(new SimPieceSegment(timestamp, a, b));
+//                    }
                 }
             }
             lastTimeStamp = VariableEncoding.readUIntFromStream(inputStream);
