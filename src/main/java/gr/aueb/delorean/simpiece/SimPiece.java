@@ -20,9 +20,9 @@ public class SimPiece {
         mergeSegments();
     }
 
-    public SimPiece(byte[] bytes){
+    public SimPiece(byte[] bytes, boolean variableByte, boolean zstd){
         this.segments = new ArrayList<>();
-        readByteArray(bytes);
+        readByteArray(bytes, variableByte, zstd);
     }
 
     private double quantization(double b, double epsilon) {
@@ -162,7 +162,7 @@ public class SimPiece {
         return segmentsPerB;
     }
 
-    public byte[] toByteArray() {
+    public byte[] toByteArray(boolean variableByte, boolean zstd) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         TreeMap<Integer, HashMap<Double, ArrayList<Long>>> segmentsPerB = reshapeSegments(epsilon, segments);
         int numB = segmentsPerB.size();
@@ -184,16 +184,19 @@ public class SimPiece {
                     UShortEncoder.writeWithFlag((short) aPerB.getValue().size(), outputStream);
                     long previousTS = 0;
                     for (Long timestamp : aPerB.getValue()) {
-                        VariableByteEncoder.write((int) (timestamp - previousTS), outputStream);
+                        if (variableByte)
+                            VariableByteEncoder.write((int) (timestamp - previousTS), outputStream);
+                        else
+                            UIntEncoder.write(timestamp, outputStream);
                         previousTS = timestamp;
                     }
-//                    for (Long timestamp : aPerB.getValue())
-//                        VariableEncoding.writeUIntToStream(timestamp.intValue(), outputStream);
                 }
             }
             UIntEncoder.write(lastTimeStamp, outputStream);
-            bytes = Zstd.compress(outputStream.toByteArray());
-//            bytes = outputStream.toByteArray();
+            if (zstd)
+                bytes = Zstd.compress(outputStream.toByteArray());
+            else
+                bytes = outputStream.toByteArray();
             outputStream.close();
         }catch (Exception e){
             e.printStackTrace();
@@ -202,9 +205,13 @@ public class SimPiece {
         return bytes;
     }
 
-    private void readByteArray(byte[] binary) {
-        byte[] zstdDecompressedBinary = Zstd.decompress(binary, binary.length * 2); //TODO: How to know apriori original size?
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(zstdDecompressedBinary);
+    private void readByteArray(byte[] input, boolean variableByte, boolean zstd) {
+        byte [] binary;
+        if (zstd)
+            binary = Zstd.decompress(input, input.length * 2); //TODO: How to know apriori original size?
+        else
+            binary = input;
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(binary);
 
         try{
             float epsilon = FloatEncoder.read(inputStream);
@@ -220,13 +227,12 @@ public class SimPiece {
                     int numTimestamps = UShortEncoder.readWithFlag(inputStream);
                     long timestamp = 0;
                     for (int k = 0; k < numTimestamps; k++) {
-                        timestamp += VariableByteEncoder.read(inputStream);
+                        if (variableByte)
+                            timestamp += VariableByteEncoder.read(inputStream);
+                        else
+                            timestamp = UIntEncoder.read(inputStream);
                         segments.add(new SimPieceSegment(timestamp, a, b));
                     }
-//                    for (int k = 0; k < numTimestamps; k++) {
-//                        long timestamp = VariableEncoding.readUIntFromStream(inputStream);
-//                        segments.add(new SimPieceSegment(timestamp, a, b));
-//                    }
                 }
             }
             lastTimeStamp = UIntEncoder.read(inputStream);
