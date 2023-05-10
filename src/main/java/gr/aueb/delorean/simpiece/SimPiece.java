@@ -1,5 +1,6 @@
 package gr.aueb.delorean.simpiece;
 
+import com.github.luben.zstd.Zstd;
 import gr.aueb.delorean.util.Point;
 import gr.aueb.delorean.util.VariableEncoding;
 
@@ -186,7 +187,8 @@ public class SimPiece {
                 }
             }
             VariableEncoding.writeUIntToStream(lastTimeStamp, outputStream);
-            bytes = outputStream.toByteArray();
+            bytes = Zstd.compress(outputStream.toByteArray());
+//            bytes = outputStream.toByteArray();
             outputStream.close();
         }catch (Exception e){
             e.printStackTrace();
@@ -196,7 +198,8 @@ public class SimPiece {
     }
 
     private void readByteArray(byte[] binary) {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(binary);
+        byte[] zstdDecompressedBinary = Zstd.decompress(binary, binary.length * 2); //TODO: How to know apriori original size?
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(zstdDecompressedBinary);
 
         try{
             float epsilon = VariableEncoding.readFloatFromStream(inputStream);
