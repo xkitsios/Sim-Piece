@@ -1,6 +1,8 @@
 # Sim-Piece
 *Sim-Piece: Highly Accurate Piecewise Linear Approximation through Similar Segment Merging*
 
+The source code of the Sim-Piece publication is available [here](https://github.com/xkitsios/Sim-Piece/releases/tag/Paper_Edition). 
+
 ## Test
 Execute (Requires Java SE 8+):
 
@@ -19,9 +21,9 @@ The 𝑟𝑎𝑛𝑔𝑒 is defined as the difference between the maximum and th
 
 
 ### PLA Methods
-- Sim-Piece
+- [Sim-Piece](http://vldb.org/pvldb/volumes/16/paper/Sim-Piece%3A%20Highly%20Accurate%20Piecewise%20Linear%20Approximation%20through%20Similar%20Segment%20Merging)
 - [Swing](https://dl.acm.org/doi/10.14778/1687627.1687645)
-- [PMCMR]()
+- [PMCMR](https://ieeexplore.ieee.org/document/1260811)
 
 
 ### Datasets
@@ -38,42 +40,65 @@ The 𝑟𝑎𝑛𝑔𝑒 is defined as the difference between the maximum and th
 ### Example Output
 >/Cricket.csv.gz  
 >Sim-Piece  
->Epsilon: 0.50%	Compression Ratio: 9.233	Execution Time: 400ms  
->Epsilon: 1.00%	Compression Ratio: 15.722	Execution Time: 137ms  
+>Epsilon: 0.50%	Compression Ratio: 9.233	Execution Time: 388ms  
+>Epsilon: 1.00%	Compression Ratio: 15.722	Execution Time: 118ms  
 >Epsilon: 1.50%	Compression Ratio: 22.475	Execution Time: 56ms  
->Epsilon: 2.00%	Compression Ratio: 29.393	Execution Time: 76ms  
->Epsilon: 2.50%	Compression Ratio: 36.440	Execution Time: 39ms  
->Epsilon: 3.00%	Compression Ratio: 43.751	Execution Time: 37ms  
->Epsilon: 3.50%	Compression Ratio: 51.236	Execution Time: 56ms  
->Epsilon: 4.00%	Compression Ratio: 58.691	Execution Time: 32ms  
->Epsilon: 4.50%	Compression Ratio: 66.852	Execution Time: 29ms  
->Epsilon: 5.00%	Compression Ratio: 74.790	Execution Time: 30ms  
+>Epsilon: 2.00%	Compression Ratio: 29.393	Execution Time: 37ms  
+>Epsilon: 2.50%	Compression Ratio: 36.440	Execution Time: 25ms  
+>Epsilon: 3.00%	Compression Ratio: 43.751	Execution Time: 23ms  
+>Epsilon: 3.50%	Compression Ratio: 51.236	Execution Time: 20ms  
+>Epsilon: 4.00%	Compression Ratio: 58.691	Execution Time: 20ms  
+>Epsilon: 4.50%	Compression Ratio: 66.852	Execution Time: 15ms  
+>Epsilon: 5.00%	Compression Ratio: 74.790	Execution Time: 14ms  
+>...  
+>Sim-Piece Variable Encoding  
+>Epsilon: 0.50%	Compression Ratio: 13.603	Execution Time: 140ms  
+>Epsilon: 1.00%	Compression Ratio: 22.877	Execution Time: 59ms  
+>Epsilon: 1.50%	Compression Ratio: 32.459	Execution Time: 36ms  
+>Epsilon: 2.00%	Compression Ratio: 42.174	Execution Time: 29ms  
+>Epsilon: 2.50%	Compression Ratio: 52.160	Execution Time: 29ms  
+>Epsilon: 3.00%	Compression Ratio: 62.372	Execution Time: 23ms  
+>Epsilon: 3.50%	Compression Ratio: 72.868	Execution Time: 18ms  
+>Epsilon: 4.00%	Compression Ratio: 83.129	Execution Time: 16ms  
+>Epsilon: 4.50%	Compression Ratio: 94.972	Execution Time: 15ms  
+>Epsilon: 5.00%	Compression Ratio: 105.932	Execution Time: 16ms  
+Sim-Piece Variable Encoding & ZStd  
+>Epsilon: 0.50%	Compression Ratio: 14.632	Execution Time: 107ms  
+>Epsilon: 1.00%	Compression Ratio: 24.634	Execution Time: 55ms  
+>Epsilon: 1.50%	Compression Ratio: 34.978	Execution Time: 35ms  
+>Epsilon: 2.00%	Compression Ratio: 45.417	Execution Time: 30ms  
+>Epsilon: 2.50%	Compression Ratio: 56.140	Execution Time: 24ms  
+>Epsilon: 3.00%	Compression Ratio: 67.224	Execution Time: 20ms  
+>Epsilon: 3.50%	Compression Ratio: 78.482	Execution Time: 18ms  
+>Epsilon: 4.00%	Compression Ratio: 89.479	Execution Time: 18ms  
+>Epsilon: 4.50%	Compression Ratio: 102.174	Execution Time: 18ms  
+>Epsilon: 5.00%	Compression Ratio: 113.636	Execution Time: 15ms  
 >Swing  
->Epsilon: 0.50%	Compression Ratio: 3.113	Execution Time: 82ms  
->Epsilon: 1.00%	Compression Ratio: 5.361	Execution Time: 28ms  
->Epsilon: 1.50%	Compression Ratio: 7.585	Execution Time: 73ms  
->Epsilon: 2.00%	Compression Ratio: 9.811	Execution Time: 14ms  
->Epsilon: 2.50%	Compression Ratio: 12.054	Execution Time: 13ms  
->Epsilon: 3.00%	Compression Ratio: 14.268	Execution Time: 15ms  
->Epsilon: 3.50%	Compression Ratio: 16.506	Execution Time: 16ms  
+>Epsilon: 0.50%	Compression Ratio: 3.113	Execution Time: 68ms  
+>Epsilon: 1.00%	Compression Ratio: 5.361	Execution Time: 25ms  
+>Epsilon: 1.50%	Compression Ratio: 7.585	Execution Time: 13ms  
+>Epsilon: 2.00%	Compression Ratio: 9.811	Execution Time: 13ms  
+>Epsilon: 2.50%	Compression Ratio: 12.054	Execution Time: 12ms  
+>Epsilon: 3.00%	Compression Ratio: 14.268	Execution Time: 12ms  
+>Epsilon: 3.50%	Compression Ratio: 16.506	Execution Time: 12ms  
 >Epsilon: 4.00%	Compression Ratio: 18.677	Execution Time: 13ms  
->Epsilon: 4.50%	Compression Ratio: 20.683	Execution Time: 15ms  
->Epsilon: 5.00%	Compression Ratio: 22.810	Execution Time: 13ms  
+>Epsilon: 4.50%	Compression Ratio: 20.683	Execution Time: 12ms  
+>Epsilon: 5.00%	Compression Ratio: 22.810	Execution Time: 15ms  
 >PMCMR  
->Epsilon: 0.50%	Compression Ratio: 2.066	Execution Time: 35ms  
->Epsilon: 1.00%	Compression Ratio: 3.253	Execution Time: 21ms  
->Epsilon: 1.50%	Compression Ratio: 4.541	Execution Time: 10ms  
+>Epsilon: 0.50%	Compression Ratio: 2.066	Execution Time: 38ms  
+>Epsilon: 1.00%	Compression Ratio: 3.253	Execution Time: 22ms  
+>Epsilon: 1.50%	Compression Ratio: 4.541	Execution Time: 9ms  
 >Epsilon: 2.00%	Compression Ratio: 5.888	Execution Time: 11ms  
->Epsilon: 2.50%	Compression Ratio: 7.308	Execution Time: 9ms  
->Epsilon: 3.00%	Compression Ratio: 8.791	Execution Time: 9ms  
->Epsilon: 3.50%	Compression Ratio: 10.332	Execution Time: 11ms  
->Epsilon: 4.00%	Compression Ratio: 11.959	Execution Time: 9ms  
->Epsilon: 4.50%	Compression Ratio: 13.659	Execution Time: 7ms  
->Epsilon: 5.00%	Compression Ratio: 15.438	Execution Time: 8ms  
+>Epsilon: 2.50%	Compression Ratio: 7.308	Execution Time: 10ms  
+>Epsilon: 3.00%	Compression Ratio: 8.791	Execution Time: 6ms  
+>Epsilon: 3.50%	Compression Ratio: 10.332	Execution Time: 8ms  
+>Epsilon: 4.00%	Compression Ratio: 11.959	Execution Time: 7ms  
+>Epsilon: 4.50%	Compression Ratio: 13.659	Execution Time: 8ms  
+>Epsilon: 5.00%	Compression Ratio: 15.438	Execution Time: 9ms  
 >...
 
 ## Notes
-- Source code of [Mixed](https://ieeexplore.ieee.org/document/7113282/) PLA and [Slide](https://dl.acm.org/doi/10.14778/1687627.1687645) PLA could be provided on request since it has been granted to us.
+- It is recommended to use Sim-Piece with Variable Byte encoding.
 - Execution time may vary depending on hardware specifications and other factors.
 
 ## Who do I talk to?
