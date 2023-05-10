@@ -1,4 +1,4 @@
-package gr.aueb.delorean.util;
+package gr.aueb.delorean.util.Encoding;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -7,7 +7,7 @@ import java.io.ByteArrayOutputStream;
  * Source code by:
  * https://github.com/lemire/JavaFastPFOR/blob/master/src/main/java/me/lemire/integercompression/VariableByte.java
  */
-public class VariableByte {
+public class VariableByteEncoder {
 
     private static byte extract7bits(int i, long val) {
         return (byte) ((val >> (7 * i)) & ((1 << 7) - 1));
@@ -45,30 +45,30 @@ public class VariableByte {
 
     public static int read(ByteArrayInputStream inputStream) {
         byte in;
-        int v;
+        int number;
 
         in = (byte) inputStream.read();
-        v = in & 0x7F;
+        number = in & 0x7F;
         if (in < 0)
-            return v;
+            return number;
 
         in = (byte) inputStream.read();
-        v = ((in & 0x7F) << 7) | v;
+        number = ((in & 0x7F) << 7) | number;
         if (in < 0)
-            return v;
+            return number;
 
         in = (byte) inputStream.read();
-        v = ((in & 0x7F) << 14) | v;
+        number = ((in & 0x7F) << 14) | number;
         if (in < 0 )
-            return v;
+            return number;
 
         in = (byte) inputStream.read();
-        v = ((in & 0x7F) << 21) | v;
+        number = ((in & 0x7F) << 21) | number;
         if (in < 0)
-            return v;
+            return number;
 
-        v = (((byte) inputStream.read() & 0x7F) << 28) | v;
+        number = (((byte) inputStream.read() & 0x7F) << 28) | number;
 
-        return v;
+        return number;
     }
 }

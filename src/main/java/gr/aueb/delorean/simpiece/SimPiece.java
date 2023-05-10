@@ -2,8 +2,7 @@ package gr.aueb.delorean.simpiece;
 
 import com.github.luben.zstd.Zstd;
 import gr.aueb.delorean.util.Point;
-import gr.aueb.delorean.util.VariableByte;
-import gr.aueb.delorean.util.VariableEncoding;
+import gr.aueb.delorean.util.Encoding.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -171,28 +170,28 @@ public class SimPiece {
         byte[] bytes = null;
 
         try {
-            VariableEncoding.writeFloatToStream((float) epsilon, outputStream);
-            VariableEncoding.writeUIntToStream(numB, outputStream);
-            VariableEncoding.writeIntToStream(firstB, outputStream);
+            FloatEncoder.write((float) epsilon, outputStream);
+            UIntEncoder.write(numB, outputStream);
+            IntEncoder.write(firstB, outputStream);
             int previousBQnt = firstB;
             for (Map.Entry<Integer, HashMap<Double, ArrayList<Long>>> segmentPerB : segmentsPerB.entrySet()) {
                 int bQnt = segmentPerB.getKey();
-                VariableEncoding.writeUIntWithFlagToStream(bQnt - previousBQnt, outputStream);
+                UIntEncoder.writeWithFlag(bQnt - previousBQnt, outputStream);
                 previousBQnt = bQnt;
-                VariableEncoding.writeUShortWithFlagToStream((short) segmentPerB.getValue().size(), outputStream);
+                UShortEncoder.writeWithFlag((short) segmentPerB.getValue().size(), outputStream);
                 for (Map.Entry<Double, ArrayList<Long>> aPerB : segmentPerB.getValue().entrySet()) {
-                    VariableEncoding.writeFloatToStream(aPerB.getKey().floatValue(), outputStream);
-                    VariableEncoding.writeUShortWithFlagToStream((short) aPerB.getValue().size(), outputStream);
+                    FloatEncoder.write(aPerB.getKey().floatValue(), outputStream);
+                    UShortEncoder.writeWithFlag((short) aPerB.getValue().size(), outputStream);
                     long previousTS = 0;
                     for (Long timestamp : aPerB.getValue()) {
-                        VariableByte.write((int) (timestamp - previousTS), outputStream);
+                        VariableByteEncoder.write((int) (timestamp - previousTS), outputStream);
                         previousTS = timestamp;
                     }
 //                    for (Long timestamp : aPerB.getValue())
 //                        VariableEncoding.writeUIntToStream(timestamp.intValue(), outputStream);
                 }
             }
-            VariableEncoding.writeUIntToStream(lastTimeStamp, outputStream);
+            UIntEncoder.write(lastTimeStamp, outputStream);
             bytes = Zstd.compress(outputStream.toByteArray());
 //            bytes = outputStream.toByteArray();
             outputStream.close();
@@ -208,20 +207,20 @@ public class SimPiece {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(zstdDecompressedBinary);
 
         try{
-            float epsilon = VariableEncoding.readFloatFromStream(inputStream);
-            long numB = VariableEncoding.readUIntFromStream(inputStream);
-            int previousBQnt = VariableEncoding.readIntFromStream(inputStream);
+            float epsilon = FloatEncoder.read(inputStream);
+            long numB = UIntEncoder.read(inputStream);
+            long previousBQnt = IntEncoder.read(inputStream);
             for (int i = 0; i < numB; i++) {
-                int bDiff = VariableEncoding.readUIntWithFlagFromStream(inputStream);
+                long bDiff = UIntEncoder.readWithFlag(inputStream);
                 float b = (bDiff + previousBQnt) * epsilon;
                 previousBQnt = bDiff + previousBQnt;
-                int numA = VariableEncoding.readUShortWithFlagFromStream(inputStream);
+                int numA = UShortEncoder.readWithFlag(inputStream);
                 for (int j = 0; j < numA; j++) {
-                    float a = VariableEncoding.readFloatFromStream(inputStream);
-                    int numTimestamps = VariableEncoding.readUShortWithFlagFromStream(inputStream);
+                    float a = FloatEncoder.read(inputStream);
+                    int numTimestamps = UShortEncoder.readWithFlag(inputStream);
                     long timestamp = 0;
                     for (int k = 0; k < numTimestamps; k++) {
-                        timestamp += VariableByte.read(inputStream);
+                        timestamp += VariableByteEncoder.read(inputStream);
                         segments.add(new SimPieceSegment(timestamp, a, b));
                     }
 //                    for (int k = 0; k < numTimestamps; k++) {
@@ -230,7 +229,7 @@ public class SimPiece {
 //                    }
                 }
             }
-            lastTimeStamp = VariableEncoding.readUIntFromStream(inputStream);
+            lastTimeStamp = UIntEncoder.read(inputStream);
             inputStream.close();
         } catch (Exception e){
             e.printStackTrace();

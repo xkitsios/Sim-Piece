@@ -1,7 +1,8 @@
 package gr.aueb.delorean.swingfilter;
 
+import gr.aueb.delorean.util.Encoding.FloatEncoder;
+import gr.aueb.delorean.util.Encoding.UIntEncoder;
 import gr.aueb.delorean.util.Point;
-import gr.aueb.delorean.util.VariableEncoding;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -92,14 +93,14 @@ public class SwingFilter {
         byte[] bytes = null;
 
         try {
-            VariableEncoding.writeUIntToStream(segments.size(), outputStream);
+            UIntEncoder.write(segments.size(), outputStream);
             for (SwingFilterSegment segment : segments){
-                VariableEncoding.writeUIntToStream(segment.getInitialTimestamp(), outputStream);
-                VariableEncoding.writeFloatToStream((float) segment.getInitialValue(), outputStream);
+                UIntEncoder.write(segment.getInitialTimestamp(), outputStream);
+                FloatEncoder.write((float) segment.getInitialValue(), outputStream);
             }
 
-            VariableEncoding.writeUIntToStream(segments.get(segments.size() - 1).getLastTimestamp(), outputStream);
-            VariableEncoding.writeFloatToStream((float) segments.get(segments.size() - 1).getLastValue(), outputStream);
+            UIntEncoder.write(segments.get(segments.size() - 1).getLastTimestamp(), outputStream);
+            FloatEncoder.write((float) segments.get(segments.size() - 1).getLastValue(), outputStream);
             bytes = outputStream.toByteArray();
             outputStream.close();
         } catch (Exception e){
@@ -113,21 +114,21 @@ public class SwingFilter {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(binary);
 
         try {
-            long totalSegments = VariableEncoding.readUIntFromStream(inputStream);
+            long totalSegments = UIntEncoder.read(inputStream);
             if (totalSegments == 0)
                 return;
 
-            long initialTimestamp = VariableEncoding.readUIntFromStream(inputStream);
-            float initialValue = VariableEncoding.readFloatFromStream(inputStream);
+            long initialTimestamp = UIntEncoder.read(inputStream);
+            float initialValue = FloatEncoder.read(inputStream);
             for (int i = 1; i < totalSegments; i++) {
-                long lastTimestamp = VariableEncoding.readUIntFromStream(inputStream);
-                float lastValue = VariableEncoding.readFloatFromStream(inputStream);
+                long lastTimestamp = UIntEncoder.read(inputStream);
+                float lastValue = FloatEncoder.read(inputStream);
                 segments.add(new SwingFilterSegment(initialTimestamp, initialValue, lastTimestamp, lastValue));
                 initialTimestamp = lastTimestamp;
                 initialValue = lastValue;
             }
-            long lastTimestamp = VariableEncoding.readUIntFromStream(inputStream);
-            float lastValue = VariableEncoding.readFloatFromStream(inputStream);
+            long lastTimestamp = UIntEncoder.read(inputStream);
+            float lastValue = FloatEncoder.read(inputStream);
             segments.add(new SwingFilterSegment(initialTimestamp, initialValue, lastTimestamp, lastValue));
             inputStream.close();
         } catch (Exception e){

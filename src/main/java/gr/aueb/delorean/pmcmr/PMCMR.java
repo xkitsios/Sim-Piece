@@ -1,7 +1,8 @@
 package gr.aueb.delorean.pmcmr;
 
+import gr.aueb.delorean.util.Encoding.FloatEncoder;
+import gr.aueb.delorean.util.Encoding.UIntEncoder;
 import gr.aueb.delorean.util.Point;
-import gr.aueb.delorean.util.VariableEncoding;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -75,12 +76,12 @@ public class PMCMR {
         byte[] bytes = null;
 
         try {
-            VariableEncoding.writeUIntToStream(segments.size(), outputStream);
+            UIntEncoder.write(segments.size(), outputStream);
             for (PMCMRSegment segment : segments) {
-                VariableEncoding.writeUIntToStream(segment.getInitialTimestamp(), outputStream);
-                VariableEncoding.writeFloatToStream((float) segment.getValue(), outputStream);
+                UIntEncoder.write(segment.getInitialTimestamp(), outputStream);
+                FloatEncoder.write((float) segment.getValue(), outputStream);
             }
-            VariableEncoding.writeUIntToStream(lastTimeStamp, outputStream);
+            UIntEncoder.write(lastTimeStamp, outputStream);
             bytes = outputStream.toByteArray();
             outputStream.close();
         } catch (Exception e) {
@@ -94,14 +95,14 @@ public class PMCMR {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(binary);
 
         try {
-            long totalSegments = VariableEncoding.readUIntFromStream(inputStream);
+            long totalSegments = UIntEncoder.read(inputStream);
             for (int i = 0; i < totalSegments; i++) {
                 PMCMRSegment segment = new PMCMRSegment();
-                segment.setInitialTimestamp(VariableEncoding.readUIntFromStream(inputStream));
-                segment.setValue(VariableEncoding.readFloatFromStream(inputStream));
+                segment.setInitialTimestamp(UIntEncoder.read(inputStream));
+                segment.setValue(FloatEncoder.read(inputStream));
                 segments.add(segment);
             }
-            lastTimeStamp = VariableEncoding.readUIntFromStream(inputStream);
+            lastTimeStamp = UIntEncoder.read(inputStream);
             inputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
