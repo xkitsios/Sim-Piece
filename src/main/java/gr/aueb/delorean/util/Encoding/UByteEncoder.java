@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 public class UByteEncoder {
     public static void write(short number, ByteArrayOutputStream outputStream) throws IOException {
         if (number > Math.pow(2, 8) - 1 || number < 0)
-            throw new UnsupportedOperationException("Can't save number " + number + " as unsigned Short");
+            throw new UnsupportedOperationException("Can't save number " + number + " as unsigned short");
         ByteBuffer buffer = ByteBuffer.allocate(Byte.BYTES);
         buffer.put((byte) (number & 0xff));
         outputStream.write(buffer.array());

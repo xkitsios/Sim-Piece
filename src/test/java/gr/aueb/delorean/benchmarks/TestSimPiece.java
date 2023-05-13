@@ -117,17 +117,12 @@ public class TestSimPiece {
                 System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n",
                         epsilonPct * 100, (double) ts.size / SimPiece(ts.data, ts.range * epsilonPct, false, false), duration.toMillis());
 
-            System.out.println("Sim-Piece ZStd");
-            for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
-                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n",
-                        epsilonPct * 100, (double) ts.size / SimPiece(ts.data, ts.range * epsilonPct, false, true), duration.toMillis());
-
-            System.out.println("Sim-Piece Variable Encoding");
+            System.out.println("Sim-Piece Variable Byte");
             for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
                 System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n",
                         epsilonPct * 100, (double) ts.size / SimPiece(ts.data, ts.range * epsilonPct, true, false), duration.toMillis());
 
-            System.out.println("Sim-Piece Variable Encoding & ZStd");
+            System.out.println("Sim-Piece Variable Byte & ZStd");
             for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
                 System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n",
                         epsilonPct * 100, (double) ts.size / SimPiece(ts.data, ts.range * epsilonPct, true, true), duration.toMillis());

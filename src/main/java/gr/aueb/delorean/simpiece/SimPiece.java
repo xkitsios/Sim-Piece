@@ -178,10 +178,10 @@ public class SimPiece {
                 int bQnt = segmentPerB.getKey();
                 UIntEncoder.writeWithFlag(bQnt - previousBQnt, outputStream);
                 previousBQnt = bQnt;
-                UShortEncoder.writeWithFlag((short) segmentPerB.getValue().size(), outputStream);
+                UShortEncoder.writeWithFlag(segmentPerB.getValue().size(), outputStream);
                 for (Map.Entry<Double, ArrayList<Long>> aPerB : segmentPerB.getValue().entrySet()) {
                     FloatEncoder.write(aPerB.getKey().floatValue(), outputStream);
-                    UShortEncoder.writeWithFlag((short) aPerB.getValue().size(), outputStream);
+                    UShortEncoder.writeWithFlag(aPerB.getValue().size(), outputStream);
                     long previousTS = 0;
                     for (Long timestamp : aPerB.getValue()) {
                         if (variableByte)

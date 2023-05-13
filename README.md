@@ -50,8 +50,7 @@ The 𝑟𝑎𝑛𝑔𝑒 is defined as the difference between the maximum and th
 >Epsilon: 4.00%	Compression Ratio: 58.691	Execution Time: 20ms  
 >Epsilon: 4.50%	Compression Ratio: 66.852	Execution Time: 15ms  
 >Epsilon: 5.00%	Compression Ratio: 74.790	Execution Time: 14ms  
->...  
->Sim-Piece Variable Encoding  
+>Sim-Piece Variable Byte  
 >Epsilon: 0.50%	Compression Ratio: 13.603	Execution Time: 140ms  
 >Epsilon: 1.00%	Compression Ratio: 22.877	Execution Time: 59ms  
 >Epsilon: 1.50%	Compression Ratio: 32.459	Execution Time: 36ms  
@@ -62,7 +61,7 @@ The 𝑟𝑎𝑛𝑔𝑒 is defined as the difference between the maximum and th
 >Epsilon: 4.00%	Compression Ratio: 83.129	Execution Time: 16ms  
 >Epsilon: 4.50%	Compression Ratio: 94.972	Execution Time: 15ms  
 >Epsilon: 5.00%	Compression Ratio: 105.932	Execution Time: 16ms  
-Sim-Piece Variable Encoding & ZStd  
+Sim-Piece Variable Byte & ZStd  
 >Epsilon: 0.50%	Compression Ratio: 14.632	Execution Time: 107ms  
 >Epsilon: 1.00%	Compression Ratio: 24.634	Execution Time: 55ms  
 >Epsilon: 1.50%	Compression Ratio: 34.978	Execution Time: 35ms  
