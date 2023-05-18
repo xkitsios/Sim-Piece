@@ -55,23 +55,23 @@ The 𝑟𝑎𝑛𝑔𝑒 is defined as the difference between the maximum and th
 >Epsilon: 1.00%	Compression Ratio: 22.878	Execution Time: 63ms  
 >Epsilon: 1.50%	Compression Ratio: 32.460	Execution Time: 35ms  
 >Epsilon: 2.00%	Compression Ratio: 42.175	Execution Time: 35ms  
->Epsilon: 2.50%	Compression Ratio: 52.162	Execution Time: 24ms  
->Epsilon: 3.00%	Compression Ratio: 62.373	Execution Time: 39ms  
->Epsilon: 3.50%	Compression Ratio: 72.871	Execution Time: 18ms  
->Epsilon: 4.00%	Compression Ratio: 83.133	Execution Time: 18ms  
->Epsilon: 4.50%	Compression Ratio: 94.979	Execution Time: 14ms  
->Epsilon: 5.00%	Compression Ratio: 105.940	Execution Time: 16ms  
+>Epsilon: 2.50%	Compression Ratio: 52.163	Execution Time: 24ms  
+>Epsilon: 3.00%	Compression Ratio: 62.374	Execution Time: 39ms  
+>Epsilon: 3.50%	Compression Ratio: 72.872	Execution Time: 18ms  
+>Epsilon: 4.00%	Compression Ratio: 83.135	Execution Time: 18ms  
+>Epsilon: 4.50%	Compression Ratio: 94.980	Execution Time: 14ms  
+>Epsilon: 5.00%	Compression Ratio: 105.942	Execution Time: 16ms  
 >Sim-Piece Variable Byte & ZStd  
 >Epsilon: 0.50%	Compression Ratio: 14.642	Execution Time: 71ms  
 >Epsilon: 1.00%	Compression Ratio: 24.655	Execution Time: 53ms  
 >Epsilon: 1.50%	Compression Ratio: 35.023	Execution Time: 45ms  
->Epsilon: 2.00%	Compression Ratio: 45.478	Execution Time: 30ms  
->Epsilon: 2.50%	Compression Ratio: 56.246	Execution Time: 23ms  
->Epsilon: 3.00%	Compression Ratio: 67.332	Execution Time: 28ms  
->Epsilon: 3.50%	Compression Ratio: 78.639	Execution Time: 20ms  
->Epsilon: 4.00%	Compression Ratio: 89.708	Execution Time: 22ms  
->Epsilon: 4.50%	Compression Ratio: 102.437	Execution Time: 15ms  
->Epsilon: 5.00%	Compression Ratio: 113.998	Execution Time: 14ms  
+>Epsilon: 2.00%	Compression Ratio: 45.479	Execution Time: 30ms  
+>Epsilon: 2.50%	Compression Ratio: 56.247	Execution Time: 23ms  
+>Epsilon: 3.00%	Compression Ratio: 67.333	Execution Time: 28ms  
+>Epsilon: 3.50%	Compression Ratio: 78.640	Execution Time: 20ms  
+>Epsilon: 4.00%	Compression Ratio: 89.710	Execution Time: 22ms  
+>Epsilon: 4.50%	Compression Ratio: 102.439	Execution Time: 15ms  
+>Epsilon: 5.00%	Compression Ratio: 114.000	Execution Time: 14ms  
 >Swing  
 >Epsilon: 0.50%	Compression Ratio: 3.113	Execution Time: 79ms  
 >Epsilon: 1.00%	Compression Ratio: 5.361	Execution Time: 28ms  

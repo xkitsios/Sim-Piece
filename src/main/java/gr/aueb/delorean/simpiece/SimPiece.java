@@ -192,7 +192,10 @@ public class SimPiece {
                     }
                 }
             }
-            UIntEncoder.write(lastTimeStamp, outputStream);
+            if (variableByte)
+                VariableByteEncoder.write((int) lastTimeStamp, outputStream);
+            else
+                UIntEncoder.write(lastTimeStamp, outputStream);
             if (zstd)
                 bytes = Zstd.compress(outputStream.toByteArray());
             else
@@ -235,7 +238,10 @@ public class SimPiece {
                     }
                 }
             }
-            lastTimeStamp = UIntEncoder.read(inputStream);
+            if (variableByte)
+                lastTimeStamp = VariableByteEncoder.read(inputStream);
+            else
+                lastTimeStamp = UIntEncoder.read(inputStream);
             inputStream.close();
         } catch (Exception e){
             e.printStackTrace();
