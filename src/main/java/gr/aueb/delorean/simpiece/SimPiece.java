@@ -171,17 +171,17 @@ public class SimPiece {
 
         try {
             FloatEncoder.write((float) epsilon, outputStream);
-            UIntEncoder.write(numB, outputStream);
+            VariableByteEncoder.write(numB, outputStream);
             IntEncoder.write(firstB, outputStream);
             int previousBQnt = firstB;
             for (Map.Entry<Integer, HashMap<Double, ArrayList<Long>>> segmentPerB : segmentsPerB.entrySet()) {
                 int bQnt = segmentPerB.getKey();
                 UIntEncoder.writeWithFlag(bQnt - previousBQnt, outputStream);
                 previousBQnt = bQnt;
-                UShortEncoder.writeWithFlag(segmentPerB.getValue().size(), outputStream);
+                VariableByteEncoder.write(segmentPerB.getValue().size(), outputStream);
                 for (Map.Entry<Double, ArrayList<Long>> aPerB : segmentPerB.getValue().entrySet()) {
                     FloatEncoder.write(aPerB.getKey().floatValue(), outputStream);
-                    UShortEncoder.writeWithFlag(aPerB.getValue().size(), outputStream);
+                    VariableByteEncoder.write(aPerB.getValue().size(), outputStream);
                     long previousTS = 0;
                     for (Long timestamp : aPerB.getValue()) {
                         if (variableByte)
@@ -215,16 +215,16 @@ public class SimPiece {
 
         try{
             float epsilon = FloatEncoder.read(inputStream);
-            long numB = UIntEncoder.read(inputStream);
+            long numB = VariableByteEncoder.read(inputStream);
             long previousBQnt = IntEncoder.read(inputStream);
             for (int i = 0; i < numB; i++) {
                 long bDiff = UIntEncoder.readWithFlag(inputStream);
                 float b = (bDiff + previousBQnt) * epsilon;
                 previousBQnt = bDiff + previousBQnt;
-                int numA = UShortEncoder.readWithFlag(inputStream);
+                int numA = VariableByteEncoder.read(inputStream);
                 for (int j = 0; j < numA; j++) {
                     float a = FloatEncoder.read(inputStream);
-                    int numTimestamps = UShortEncoder.readWithFlag(inputStream);
+                    int numTimestamps = VariableByteEncoder.read(inputStream);
                     long timestamp = 0;
                     for (int k = 0; k < numTimestamps; k++) {
                         if (variableByte)
