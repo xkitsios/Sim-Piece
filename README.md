@@ -16,6 +16,8 @@ The provided repository also includes a newer algorithm called Sim-Piece+, which
 
 The following graph illustrates the performance of these algorithms on a diverse range of real datasets, comparing them to the optimal PLA representation for the same maximum error bound.
 
+![Relative Compression Ratio](relative_cr.svg)
+
 One possible extension to the algorithm is to optimize the line used to represent a joint group, in addition to optimizing the overall size of the representation given a maximum error threshold. Currently, the code does not explicitly focus on optimizing the line representation within shared segments. Still, the extremely compact representation of Sim-Piece results in smaller Mean Absolute Error (MAE) and Root Mean Squared Error (RMSE) values that alternative PLA techniques for the same space (see our paper for more details). It is possible to adapt the Sim-Piece algorithm to provide even better results regarding these metrics by changing the way the line of each shared segment is produced.
 
 ## Test
