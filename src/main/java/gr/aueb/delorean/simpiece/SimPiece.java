@@ -20,13 +20,13 @@ public class SimPiece {
         mergeSegments();
     }
 
-    public SimPiece(byte[] bytes, boolean variableByte, boolean zstd){
+    public SimPiece(byte[] bytes, boolean variableByte, boolean zstd) {
         this.segments = new ArrayList<>();
         readByteArray(bytes, variableByte, zstd);
     }
 
-    private double quantization(double b, double epsilon) {
-        return ((int) (b / epsilon)) * epsilon;
+    private double quantization(double value) {
+        return Math.round(value / epsilon) * epsilon;
     }
 
     private void compress(List<Point> points, double epsilon) {
@@ -39,7 +39,7 @@ public class SimPiece {
         long segmentSize = 1;
         long segmentInitTimestamp = points.get(0).getTimestamp();
         double segmentInitValue = points.get(0).getValue();
-        double b = quantization(segmentInitValue, epsilon);
+        double b = quantization(segmentInitValue);
 
         for (Point point : points) {
             if (point == points.get(0))
@@ -57,14 +57,14 @@ public class SimPiece {
                     segmentSize = 1;
                     segmentInitTimestamp = point.getTimestamp();
                     segmentInitValue = point.getValue();
-                    b = quantization(segmentInitValue, epsilon);
+                    b = quantization(segmentInitValue);
                     continue;
                 }
             }
 
-            double aMaxTemp = (upValue - quantization(segmentInitValue, epsilon)) /
+            double aMaxTemp = (upValue - quantization(segmentInitValue)) /
                     (point.getTimestamp() - segmentInitTimestamp);
-            double aMinTemp = (downValue - quantization(segmentInitValue, epsilon)) /
+            double aMinTemp = (downValue - quantization(segmentInitValue)) /
                     (point.getTimestamp() - segmentInitTimestamp);
 
             if (segmentSize == 2) {

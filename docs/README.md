@@ -5,7 +5,7 @@ Publication:  [Proceedings of the VLDB Endowment](http://vldb.org/pvldb/volumes/
 Source Code: [GitHub](https://github.com/xkitsios/Sim-Piece/)
 
 ## Description
-Sim-Piece is a time-series lossy data compressor influenced by PLA. If you are interested in lossless time-series compression you can take a look at our CHIMP algorithm available at https://github.com/panagiotisl/chimp.
+Sim-Piece is a time-series lossy data compressor influenced by PLA. If you are interested in lossless time-series compression you can take a look at our CHIMP algorithm available at [https://github.com/panagiotisl/chimp](https://github.com/panagiotisl/chimp).
 
 Sim-Piece utilizes a user-defined maximum absolute error bound to generate a remarkably compact binary representation of a time series. Sim-Piece is particularly suitable for applications that need to accommodate large time series datasets even when the acceptable error threshold is very small.
 
