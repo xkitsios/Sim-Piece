@@ -1,8 +1,6 @@
 # Sim-Piece
 *Sim-Piece: Highly Accurate Piecewise Linear Approximation through Similar Segment Merging*
 
-The source code of the Sim-Piece publication is available [here](https://github.com/xkitsios/Sim-Piece/releases/tag/Paper_Edition). 
-
 ## Description
 Sim-Piece is a time-series lossy data compressor influenced by PLA. If you are interested in lossless time-series compression you can take a look at our CHIMP algorithm available at https://github.com/panagiotisl/chimp.
 
