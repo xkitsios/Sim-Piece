@@ -15,8 +15,7 @@ public class IntEncoder {
     public static int read(ByteArrayInputStream inputStream) throws IOException {
         byte[] byteArray = new byte[Integer.BYTES];
         int k = inputStream.read(byteArray);
-        if (k != Integer.BYTES)
-            throw new IOException();
+        if (k != Integer.BYTES) throw new IOException();
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
         buffer.put(byteArray);
         buffer.flip();

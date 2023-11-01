@@ -1,27 +1,31 @@
 package gr.aueb.delorean.simpiece;
 
 import com.github.luben.zstd.Zstd;
+import gr.aueb.delorean.util.Encoding.FloatEncoder;
+import gr.aueb.delorean.util.Encoding.UIntEncoder;
+import gr.aueb.delorean.util.Encoding.VariableByteEncoder;
 import gr.aueb.delorean.util.Point;
-import gr.aueb.delorean.util.Encoding.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 public class SimPiece {
-    private List<SimPieceSegment> segments;
-    private long lastTimeStamp;
+    private ArrayList<SimPieceSegment> segments;
+
     private double epsilon;
-    public SimPiece(List<Point> points, double epsilon){
-        this.segments = new ArrayList<>();
+    private long lastTimeStamp;
+
+    public SimPiece(List<Point> points, double epsilon) throws IOException {
+        if (points.isEmpty()) throw new IOException();
+
         this.epsilon = epsilon;
         this.lastTimeStamp = points.get(points.size() - 1).getTimestamp();
-        compress(points, epsilon);
-        mergeSegments();
+        this.segments = mergePerB(compress(points));
     }
 
-    public SimPiece(byte[] bytes, boolean variableByte, boolean zstd) {
-        this.segments = new ArrayList<>();
+    public SimPiece(byte[] bytes, boolean variableByte, boolean zstd) throws IOException {
         readByteArray(bytes, variableByte, zstd);
     }
 
@@ -29,108 +33,107 @@ public class SimPiece {
         return Math.round(value / epsilon) * epsilon;
     }
 
-    private void compress(List<Point> points, double epsilon) {
-        if (points.isEmpty())
-            return;
-
-        double aMax = Double.MAX_VALUE;
-        double aMin = Double.MIN_VALUE;
-
-        long segmentSize = 1;
-        long segmentInitTimestamp = points.get(0).getTimestamp();
-        double segmentInitValue = points.get(0).getValue();
-        double b = quantization(segmentInitValue);
-
-        for (Point point : points) {
-            if (point == points.get(0))
-                continue;
-            segmentSize++;
-            double upValue = point.getValue() + epsilon;
-            double downValue = point.getValue() - epsilon;
-
-
-            if (segmentSize > 2) {
-                double upLim = aMax * (point.getTimestamp() - segmentInitTimestamp) + b;
-                double downLim = aMin * (point.getTimestamp() - segmentInitTimestamp) + b;
-                if (downValue > upLim || upValue < downLim) {
-                    segments.add(new SimPieceSegment(segmentInitTimestamp, aMin, aMax, b));
-                    segmentSize = 1;
-                    segmentInitTimestamp = point.getTimestamp();
-                    segmentInitValue = point.getValue();
-                    b = quantization(segmentInitValue);
-                    continue;
-                }
-            }
-
-            double aMaxTemp = (upValue - quantization(segmentInitValue)) /
-                    (point.getTimestamp() - segmentInitTimestamp);
-            double aMinTemp = (downValue - quantization(segmentInitValue)) /
-                    (point.getTimestamp() - segmentInitTimestamp);
-
-            if (segmentSize == 2) {
-                aMax = aMaxTemp;
-                aMin = aMinTemp;
-            } else {
-                double upLim = aMax * (point.getTimestamp() - segmentInitTimestamp) + b;
-                double downLim = aMin * (point.getTimestamp() - segmentInitTimestamp) + b;
-                if (upValue < upLim)
-                    aMax = Math.max(aMaxTemp, aMin);
-                if (downValue > downLim)
-                    aMin = Math.min(aMinTemp, aMax);
-            }
+    private int createSegment(int startIdx, List<Point> points, ArrayList<SimPieceSegment> segments) {
+        long initTimestamp = points.get(startIdx).getTimestamp();
+        double b = quantization(points.get(startIdx).getValue());
+        if (startIdx + 1 == points.size()) {
+            segments.add(new SimPieceSegment(initTimestamp, -Double.MAX_VALUE, Double.MAX_VALUE, b));
+            return startIdx + 1;
         }
-        if (segmentSize != 0)
-            segments.add(new SimPieceSegment(segmentInitTimestamp, aMin, aMax, b));
+        double aMax = ((points.get(startIdx + 1).getValue() + epsilon) - b) / (points.get(startIdx + 1).getTimestamp() - initTimestamp);
+        double aMin = ((points.get(startIdx + 1).getValue() - epsilon) - b) / (points.get(startIdx + 1).getTimestamp() - initTimestamp);
+        if (startIdx + 2 == points.size()) {
+            segments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
+            return startIdx + 2;
+        }
+
+        for (int idx = startIdx + 2; idx < points.size(); idx++) {
+            double upValue = points.get(idx).getValue() + epsilon;
+            double downValue = points.get(idx).getValue() - epsilon;
+
+            double upLim = aMax * (points.get(idx).getTimestamp() - initTimestamp) + b;
+            double downLim = aMin * (points.get(idx).getTimestamp() - initTimestamp) + b;
+            if ((downValue > upLim || upValue < downLim)) {
+                segments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
+                return idx;
+            }
+
+            if (upValue < upLim)
+                aMax = Math.max((upValue - b) / (points.get(idx).getTimestamp() - initTimestamp), aMin);
+            if (downValue > downLim)
+                aMin = Math.min((downValue - b) / (points.get(idx).getTimestamp() - initTimestamp), aMax);
+        }
+        segments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
+
+        return points.size();
     }
 
+    private ArrayList<SimPieceSegment> compress(List<Point> points) {
+        ArrayList<SimPieceSegment> segments = new ArrayList<>();
+        int currentIdx = 0;
+        while (currentIdx < points.size()) currentIdx = createSegment(currentIdx, points, segments);
 
-    private void mergeSegments() {
+        return segments;
+    }
+
+    private ArrayList<SimPieceSegment> mergePerB(ArrayList<SimPieceSegment> segments) {
+        double aMinTemp = -Double.MAX_VALUE;
+        double aMaxTemp = Double.MAX_VALUE;
+        double b = Double.NaN;
         ArrayList<Long> timestamps = new ArrayList<>();
-        ArrayList<SimPieceSegment> segmentsMerged = new ArrayList<>();
-        SimPieceSegment mergedSeg;
+        ArrayList<SimPieceSegment> mergedSegments = new ArrayList<>();
 
-        TreeMap<Double, List<SimPieceSegment>> segmentsPerB = new TreeMap<>();
-        for (SimPieceSegment segment : segments) {
-            List<SimPieceSegment> temp = segmentsPerB.getOrDefault(segment.getB(), new ArrayList<>());
-            temp.add(segment);
-            segmentsPerB.put(segment.getB(), temp);
-        }
-        for (Map.Entry<Double, List<SimPieceSegment>> bSegments : segmentsPerB.entrySet()) {
-            bSegments.getValue().sort(Comparator.comparingDouble(SimPieceSegment::getAMin));
-            Iterator<SimPieceSegment> it = bSegments.getValue().iterator();
-            SimPieceSegment currentSeg = it.next();
-            mergedSeg = new SimPieceSegment(-1, currentSeg.aMin, currentSeg.aMax, currentSeg.b);
-            timestamps.add(currentSeg.getInitTimestamp());
-            while (it.hasNext()) {
-                currentSeg = it.next();
-                if (currentSeg.aMin <= mergedSeg.aMax && currentSeg.aMax >= mergedSeg.aMin) {
-                    timestamps.add(currentSeg.getInitTimestamp());
-                    mergedSeg.aMin = Math.max(mergedSeg.aMin, currentSeg.aMin);
-                    mergedSeg.aMax = Math.min(mergedSeg.aMax, currentSeg.aMax);
-                } else {
-                    for (long timestamp : timestamps)
-                        segmentsMerged.add(new SimPieceSegment(timestamp, mergedSeg.getAMin(), mergedSeg.getAMax(), mergedSeg.getB()));
-                    timestamps.clear();
-                    mergedSeg = new SimPieceSegment(-1, currentSeg.aMin, currentSeg.aMax, currentSeg.b);
-                    timestamps.add(currentSeg.getInitTimestamp());
+        segments.sort(Comparator.comparingDouble(SimPieceSegment::getB).thenComparingDouble(SimPieceSegment::getA));
+        for (int i = 0; i < segments.size(); i++) {
+            if (b != segments.get(i).getB()) {
+                if (timestamps.size() == 1)
+                    mergedSegments.add(new SimPieceSegment(timestamps.get(0), aMinTemp, aMaxTemp, b));
+                else {
+                    for (Long timestamp : timestamps)
+                        mergedSegments.add(new SimPieceSegment(timestamp, aMinTemp, aMaxTemp, b));
                 }
-            }
-            if (timestamps.size() > 0){
-                for (long timestamp : timestamps)
-                    segmentsMerged.add(new SimPieceSegment(timestamp, mergedSeg.getAMin(), mergedSeg.getAMax(), mergedSeg.getB()));
                 timestamps.clear();
+                timestamps.add(segments.get(i).getInitTimestamp());
+                aMinTemp = segments.get(i).getAMin();
+                aMaxTemp = segments.get(i).getAMax();
+                b = segments.get(i).getB();
+                continue;
+            }
+            if (segments.get(i).getAMin() <= aMaxTemp && segments.get(i).getAMax() >= aMinTemp) {
+                timestamps.add(segments.get(i).getInitTimestamp());
+                aMinTemp = Math.max(aMinTemp, segments.get(i).getAMin());
+                aMaxTemp = Math.min(aMaxTemp, segments.get(i).getAMax());
+            } else {
+                if (timestamps.size() == 1) mergedSegments.add(segments.get(i - 1));
+                else {
+                    for (long timestamp : timestamps)
+                        mergedSegments.add(new SimPieceSegment(timestamp, aMinTemp, aMaxTemp, b));
+                }
+                timestamps.clear();
+                timestamps.add(segments.get(i).getInitTimestamp());
+                aMinTemp = segments.get(i).getAMin();
+                aMaxTemp = segments.get(i).getAMax();
+            }
+        }
+        if (!timestamps.isEmpty()) {
+            if (timestamps.size() == 1)
+                mergedSegments.add(new SimPieceSegment(timestamps.get(0), aMinTemp, aMaxTemp, b));
+            else {
+                for (long timestamp : timestamps)
+                    mergedSegments.add(new SimPieceSegment(timestamp, aMinTemp, aMaxTemp, b));
             }
         }
 
-        segmentsMerged.sort(Comparator.comparingLong(SimPieceSegment::getInitTimestamp));
-        segments = segmentsMerged;
+        return mergedSegments;
     }
 
     public List<Point> decompress() {
+        segments.sort(Comparator.comparingLong(SimPieceSegment::getInitTimestamp));
         List<Point> points = new ArrayList<>();
-        long currentTimeStamp = 0;
+        long currentTimeStamp = segments.get(0).getInitTimestamp();
 
-        for (int i = 0; i < segments.size() - 1; i++){
+
+        for (int i = 0; i < segments.size() - 1; i++) {
             while (currentTimeStamp < segments.get(i + 1).getInitTimestamp()) {
                 points.add(new Point(currentTimeStamp, segments.get(i).getA() * (currentTimeStamp - segments.get(i).getInitTimestamp()) + segments.get(i).getB()));
                 currentTimeStamp++;
@@ -145,107 +148,93 @@ public class SimPiece {
         return points;
     }
 
-    private static TreeMap<Integer, HashMap<Double, ArrayList<Long>>> reshapeSegments(double epsilon, List<SimPieceSegment> segments) {
-        TreeMap<Integer, HashMap<Double, ArrayList<Long>>> segmentsPerB = new TreeMap<>();
+    private void toByteArrayPerBSegments(ArrayList<SimPieceSegment> segments, boolean variableByte, ByteArrayOutputStream outStream) throws IOException {
+        TreeMap<Integer, HashMap<Double, ArrayList<Long>>> input = new TreeMap<>();
         for (SimPieceSegment segment : segments) {
-            int b = (int) Math.round(segment.getB() / epsilon);
             double a = segment.getA();
-            if (!segmentsPerB.containsKey(b)) {
-                segmentsPerB.put(b, new HashMap<>());
-            }
-            if (!segmentsPerB.get(b).containsKey(a)) {
-                segmentsPerB.get(b).put(a, new ArrayList<>());
-            }
-            segmentsPerB.get(b).get(a).add(segment.getInitTimestamp());
+            int b = (int) Math.round(segment.getB() / epsilon);
+            long t = segment.getInitTimestamp();
+            if (!input.containsKey(b)) input.put(b, new HashMap<>());
+            if (!input.get(b).containsKey(a)) input.get(b).put(a, new ArrayList<>());
+            input.get(b).get(a).add(t);
         }
 
-        return segmentsPerB;
-    }
-
-    public byte[] toByteArray(boolean variableByte, boolean zstd) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        TreeMap<Integer, HashMap<Double, ArrayList<Long>>> segmentsPerB = reshapeSegments(epsilon, segments);
-        int numB = segmentsPerB.size();
-        int firstB = segmentsPerB.keySet().iterator().next();
-        byte[] bytes = null;
-
-        try {
-            FloatEncoder.write((float) epsilon, outputStream);
-            VariableByteEncoder.write(numB, outputStream);
-            IntEncoder.write(firstB, outputStream);
-            int previousBQnt = firstB;
-            for (Map.Entry<Integer, HashMap<Double, ArrayList<Long>>> segmentPerB : segmentsPerB.entrySet()) {
-                int bQnt = segmentPerB.getKey();
-                UIntEncoder.writeWithFlag(bQnt - previousBQnt, outputStream);
-                previousBQnt = bQnt;
-                VariableByteEncoder.write(segmentPerB.getValue().size(), outputStream);
-                for (Map.Entry<Double, ArrayList<Long>> aPerB : segmentPerB.getValue().entrySet()) {
-                    FloatEncoder.write(aPerB.getKey().floatValue(), outputStream);
-                    VariableByteEncoder.write(aPerB.getValue().size(), outputStream);
-                    long previousTS = 0;
-                    for (Long timestamp : aPerB.getValue()) {
-                        if (variableByte)
-                            VariableByteEncoder.write((int) (timestamp - previousTS), outputStream);
-                        else
-                            UIntEncoder.write(timestamp, outputStream);
-                        previousTS = timestamp;
-                    }
+        VariableByteEncoder.write(input.size(), outStream);
+        if (input.isEmpty()) return;
+        int previousB = input.firstKey();
+        VariableByteEncoder.write(previousB, outStream);
+        for (Map.Entry<Integer, HashMap<Double, ArrayList<Long>>> bSegments : input.entrySet()) {
+            VariableByteEncoder.write(bSegments.getKey() - previousB, outStream);
+            previousB = bSegments.getKey();
+            VariableByteEncoder.write(bSegments.getValue().size(), outStream);
+            for (Map.Entry<Double, ArrayList<Long>> aSegment : bSegments.getValue().entrySet()) {
+                FloatEncoder.write(aSegment.getKey().floatValue(), outStream);
+                if (variableByte) Collections.sort(aSegment.getValue());
+                VariableByteEncoder.write(aSegment.getValue().size(), outStream);
+                long previousTS = 0;
+                for (Long timestamp : aSegment.getValue()) {
+                    if (variableByte) VariableByteEncoder.write((int) (timestamp - previousTS), outStream);
+                    else UIntEncoder.write(timestamp, outStream);
+                    previousTS = timestamp;
                 }
             }
-            if (variableByte)
-                VariableByteEncoder.write((int) lastTimeStamp, outputStream);
-            else
-                UIntEncoder.write(lastTimeStamp, outputStream);
-            if (zstd)
-                bytes = Zstd.compress(outputStream.toByteArray());
-            else
-                bytes = outputStream.toByteArray();
-            outputStream.close();
-        }catch (Exception e){
-            e.printStackTrace();
         }
+    }
+
+
+    public byte[] toByteArray(boolean variableByte, boolean zstd) throws IOException {
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        byte[] bytes;
+
+        FloatEncoder.write((float) epsilon, outStream);
+
+        toByteArrayPerBSegments(segments, variableByte, outStream);
+
+        if (variableByte) VariableByteEncoder.write((int) lastTimeStamp, outStream);
+        else UIntEncoder.write(lastTimeStamp, outStream);
+
+        if (zstd) bytes = Zstd.compress(outStream.toByteArray());
+        else bytes = outStream.toByteArray();
+
+        outStream.close();
 
         return bytes;
     }
 
-    private void readByteArray(byte[] input, boolean variableByte, boolean zstd) {
-        byte [] binary;
-        if (zstd)
-            binary = Zstd.decompress(input, input.length * 2); //TODO: How to know apriori original size?
-        else
-            binary = input;
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(binary);
-
-        try{
-            float epsilon = FloatEncoder.read(inputStream);
-            long numB = VariableByteEncoder.read(inputStream);
-            long previousBQnt = IntEncoder.read(inputStream);
-            for (int i = 0; i < numB; i++) {
-                long bDiff = UIntEncoder.readWithFlag(inputStream);
-                float b = (bDiff + previousBQnt) * epsilon;
-                previousBQnt = bDiff + previousBQnt;
-                int numA = VariableByteEncoder.read(inputStream);
-                for (int j = 0; j < numA; j++) {
-                    float a = FloatEncoder.read(inputStream);
-                    int numTimestamps = VariableByteEncoder.read(inputStream);
-                    long timestamp = 0;
-                    for (int k = 0; k < numTimestamps; k++) {
-                        if (variableByte)
-                            timestamp += VariableByteEncoder.read(inputStream);
-                        else
-                            timestamp = UIntEncoder.read(inputStream);
-                        segments.add(new SimPieceSegment(timestamp, a, b));
-                    }
+    private ArrayList<SimPieceSegment> readMergedPerBSegments(boolean variableByte, ByteArrayInputStream inStream) throws IOException {
+        ArrayList<SimPieceSegment> segments = new ArrayList<>();
+        long numB = VariableByteEncoder.read(inStream);
+        if (numB == 0) return segments;
+        int previousB = VariableByteEncoder.read(inStream);
+        for (int i = 0; i < numB; i++) {
+            int b = VariableByteEncoder.read(inStream) + previousB;
+            previousB = b;
+            int numA = VariableByteEncoder.read(inStream);
+            for (int j = 0; j < numA; j++) {
+                float a = FloatEncoder.read(inStream);
+                int numTimestamps = VariableByteEncoder.read(inStream);
+                long timestamp = 0;
+                for (int k = 0; k < numTimestamps; k++) {
+                    if (variableByte) timestamp += VariableByteEncoder.read(inStream);
+                    else timestamp = UIntEncoder.read(inStream);
+                    segments.add(new SimPieceSegment(timestamp, a, (float) (b * epsilon)));
                 }
             }
-            if (variableByte)
-                lastTimeStamp = VariableByteEncoder.read(inputStream);
-            else
-                lastTimeStamp = UIntEncoder.read(inputStream);
-            inputStream.close();
-        } catch (Exception e){
-            e.printStackTrace();
         }
-        segments.sort(Comparator.comparingDouble(SimPieceSegment::getInitTimestamp));
+
+        return segments;
+    }
+
+    private void readByteArray(byte[] input, boolean variableByte, boolean zstd) throws IOException {
+        byte[] binary;
+        if (zstd) binary = Zstd.decompress(input, input.length * 2); //TODO: How to know apriori original size?
+        else binary = input;
+        ByteArrayInputStream inStream = new ByteArrayInputStream(binary);
+
+        this.epsilon = FloatEncoder.read(inStream);
+        this.segments = readMergedPerBSegments(variableByte, inStream);
+        if (variableByte) this.lastTimeStamp = VariableByteEncoder.read(inStream);
+        else this.lastTimeStamp = UIntEncoder.read(inStream);
+        inStream.close();
     }
 }

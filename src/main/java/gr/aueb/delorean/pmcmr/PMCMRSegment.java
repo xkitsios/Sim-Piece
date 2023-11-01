@@ -1,22 +1,19 @@
 package gr.aueb.delorean.pmcmr;
 
 public class PMCMRSegment {
-    private long initialTimestamp;
-    private Double value;
+    private final long initialTimestamp;
+    private final Double value;
 
-    public long getInitialTimestamp() {
-        return initialTimestamp;
-    }
-
-    public void setInitialTimestamp(long initialTimestamp) {
+    PMCMRSegment(long initialTimestamp, double value) {
         this.initialTimestamp = initialTimestamp;
+        this.value = value;
     }
 
     public double getValue() {
         return value;
     }
 
-    public void setValue(double value) {
-        this.value = value;
+    public long getInitialTimestamp() {
+        return initialTimestamp;
     }
 }

@@ -22,7 +22,7 @@ One possible extension to the algorithm is to optimize the line used to represen
 Execute (Requires Java SE 8+):
 
 ```
-mvn test -Dtest=TestSimPiece
+mvn test -Dtest=TestPLA
 ```
 
 ### Error thresholds 𝜖 (Epsilon)
@@ -55,61 +55,60 @@ The 𝑟𝑎𝑛𝑔𝑒 is defined as the difference between the maximum and th
 ### Example Output
 >/Cricket.csv.gz  
 >Sim-Piece  
->Epsilon: 0.50%	Compression Ratio: 9.379	Execution Time: 359ms  
->Epsilon: 1.00%	Compression Ratio: 16.218	Execution Time: 119ms  
->Epsilon: 1.50%	Compression Ratio: 23.240	Execution Time: 51ms  
->Epsilon: 2.00%	Compression Ratio: 30.485	Execution Time: 31ms  
->Epsilon: 2.50%	Compression Ratio: 37.678	Execution Time: 22ms  
->Epsilon: 3.00%	Compression Ratio: 45.133	Execution Time: 19ms  
->Epsilon: 3.50%	Compression Ratio: 52.725	Execution Time: 17ms  
->Epsilon: 4.00%	Compression Ratio: 60.569	Execution Time: 19ms  
->Epsilon: 4.50%	Compression Ratio: 68.336	Execution Time: 16ms  
->Epsilon: 5.00%	Compression Ratio: 76.726	Execution Time: 14ms  
+>Epsilon: 0.50%	Compression Ratio: 9.379	Execution Time: 194ms  
+>Epsilon: 1.00%	Compression Ratio: 16.218	Execution Time: 87ms  
+>Epsilon: 1.50%	Compression Ratio: 23.240	Execution Time: 34ms  
+>Epsilon: 2.00%	Compression Ratio: 30.485	Execution Time: 28ms  
+>Epsilon: 2.50%	Compression Ratio: 37.677	Execution Time: 24ms  
+>Epsilon: 3.00%	Compression Ratio: 45.132	Execution Time: 22ms  
+>Epsilon: 3.50%	Compression Ratio: 52.724	Execution Time: 19ms  
+>Epsilon: 4.00%	Compression Ratio: 60.568	Execution Time: 16ms  
+>Epsilon: 4.50%	Compression Ratio: 68.335	Execution Time: 15ms  
+>Epsilon: 5.00%	Compression Ratio: 76.724	Execution Time: 14ms  
 >Sim-Piece Variable Byte  
->Epsilon: 0.50%	Compression Ratio: 13.729	Execution Time: 97ms  
->Epsilon: 1.00%	Compression Ratio: 23.343	Execution Time: 63ms  
->Epsilon: 1.50%	Compression Ratio: 33.110	Execution Time: 35ms  
->Epsilon: 2.00%	Compression Ratio: 43.271	Execution Time: 35ms  
->Epsilon: 2.50%	Compression Ratio: 53.140	Execution Time: 24ms  
->Epsilon: 3.00%	Compression Ratio: 63.478	Execution Time: 39ms  
->Epsilon: 3.50%	Compression Ratio: 73.844	Execution Time: 18ms  
->Epsilon: 4.00%	Compression Ratio: 84.503	Execution Time: 18ms  
->Epsilon: 4.50%	Compression Ratio: 95.043	Execution Time: 14ms  
->Epsilon: 5.00%	Compression Ratio: 106.713	Execution Time: 16ms  
+>Epsilon: 0.50%	Compression Ratio: 13.650	Execution Time: 70ms  
+>Epsilon: 1.00%	Compression Ratio: 23.244	Execution Time: 45ms  
+>Epsilon: 1.50%	Compression Ratio: 32.980	Execution Time: 39ms  
+>Epsilon: 2.00%	Compression Ratio: 43.047	Execution Time: 34ms  
+>Epsilon: 2.50%	Compression Ratio: 52.992	Execution Time: 23ms  
+>Epsilon: 3.00%	Compression Ratio: 63.193	Execution Time: 19ms  
+>Epsilon: 3.50%	Compression Ratio: 73.646	Execution Time: 17ms  
+>Epsilon: 4.00%	Compression Ratio: 84.291	Execution Time: 15ms  
+>Epsilon: 4.50%	Compression Ratio: 94.647	Execution Time: 16ms  
+>Epsilon: 5.00%	Compression Ratio: 106.225	Execution Time: 13ms  
 >Sim-Piece Variable Byte & ZStd  
->Epsilon: 0.50%	Compression Ratio: 14.792	Execution Time: 71ms  
->Epsilon: 1.00%	Compression Ratio: 25.203	Execution Time: 53ms  
->Epsilon: 1.50%	Compression Ratio: 35.786	Execution Time: 45ms  
->Epsilon: 2.00%	Compression Ratio: 46.742	Execution Time: 30ms  
->Epsilon: 2.50%	Compression Ratio: 57.441	Execution Time: 23ms  
->Epsilon: 3.00%	Compression Ratio: 68.610	Execution Time: 28ms  
->Epsilon: 3.50%	Compression Ratio: 79.772	Execution Time: 20ms  
->Epsilon: 4.00%	Compression Ratio: 91.368	Execution Time: 22ms  
->Epsilon: 4.50%	Compression Ratio: 102.671	Execution Time: 15ms  
->Epsilon: 5.00%	Compression Ratio: 115.132	Execution Time: 14ms  
+>Epsilon: 0.50%	Compression Ratio: 14.745	Execution Time: 72ms  
+>Epsilon: 1.00%	Compression Ratio: 25.135	Execution Time: 39ms  
+>Epsilon: 1.50%	Compression Ratio: 35.686	Execution Time: 32ms  
+>Epsilon: 2.00%	Compression Ratio: 46.615	Execution Time: 25ms  
+>Epsilon: 2.50%	Compression Ratio: 57.318	Execution Time: 19ms  
+>Epsilon: 3.00%	Compression Ratio: 68.463	Execution Time: 18ms  
+>Epsilon: 3.50%	Compression Ratio: 79.700	Execution Time: 17ms  
+>Epsilon: 4.00%	Compression Ratio: 91.179	Execution Time: 15ms  
+>Epsilon: 4.50%	Compression Ratio: 102.446	Execution Time: 13ms  
+>Epsilon: 5.00%	Compression Ratio: 114.882	Execution Time: 14ms  
 >Swing  
 >Epsilon: 0.50%	Compression Ratio: 3.113	Execution Time: 79ms  
->Epsilon: 1.00%	Compression Ratio: 5.361	Execution Time: 28ms  
->Epsilon: 1.50%	Compression Ratio: 7.585	Execution Time: 13ms  
->Epsilon: 2.00%	Compression Ratio: 9.811	Execution Time: 16ms  
->Epsilon: 2.50%	Compression Ratio: 12.054	Execution Time: 17ms  
->Epsilon: 3.00%	Compression Ratio: 14.268	Execution Time: 14ms  
->Epsilon: 3.50%	Compression Ratio: 16.506	Execution Time: 14ms  
->Epsilon: 4.00%	Compression Ratio: 18.677	Execution Time: 17ms  
->Epsilon: 4.50%	Compression Ratio: 20.683	Execution Time: 14ms  
->Epsilon: 5.00%	Compression Ratio: 22.810	Execution Time: 15ms  
+>Epsilon: 1.00%	Compression Ratio: 5.361	Execution Time: 37ms  
+>Epsilon: 1.50%	Compression Ratio: 7.585	Execution Time: 16ms  
+>Epsilon: 2.00%	Compression Ratio: 9.811	Execution Time: 32ms  
+>Epsilon: 2.50%	Compression Ratio: 12.054	Execution Time: 30ms  
+>Epsilon: 3.00%	Compression Ratio: 14.268	Execution Time: 13ms  
+>Epsilon: 3.50%	Compression Ratio: 16.506	Execution Time: 12ms  
+>Epsilon: 4.00%	Compression Ratio: 18.677	Execution Time: 13ms  
+>Epsilon: 4.50%	Compression Ratio: 20.683	Execution Time: 12ms  
+>Epsilon: 5.00%	Compression Ratio: 22.810	Execution Time: 71ms  
 >PMCMR  
->Epsilon: 0.50%	Compression Ratio: 2.066	Execution Time: 34ms  
->Epsilon: 1.00%	Compression Ratio: 3.253	Execution Time: 19ms  
->Epsilon: 1.50%	Compression Ratio: 4.541	Execution Time: 11ms  
->Epsilon: 2.00%	Compression Ratio: 5.888	Execution Time: 12ms  
->Epsilon: 2.50%	Compression Ratio: 7.308	Execution Time: 10ms  
->Epsilon: 3.00%	Compression Ratio: 8.791	Execution Time: 12ms  
->Epsilon: 3.50%	Compression Ratio: 10.332	Execution Time: 9ms  
->Epsilon: 4.00%	Compression Ratio: 11.959	Execution Time: 9ms  
->Epsilon: 4.50%	Compression Ratio: 13.659	Execution Time: 9ms  
->Epsilon: 5.00%	Compression Ratio: 15.438	Execution Time: 12ms  
->...
+>Epsilon: 0.50%	Compression Ratio: 2.066	Execution Time: 53ms  
+>Epsilon: 1.00%	Compression Ratio: 3.253	Execution Time: 34ms  
+>Epsilon: 1.50%	Compression Ratio: 4.541	Execution Time: 31ms  
+>Epsilon: 2.00%	Compression Ratio: 5.888	Execution Time: 41ms  
+>Epsilon: 2.50%	Compression Ratio: 7.308	Execution Time: 33ms  
+>Epsilon: 3.00%	Compression Ratio: 8.791	Execution Time: 15ms  
+>Epsilon: 3.50%	Compression Ratio: 10.332	Execution Time: 13ms  
+>Epsilon: 4.00%	Compression Ratio: 11.959	Execution Time: 11ms  
+>Epsilon: 4.50%	Compression Ratio: 13.659	Execution Time: 16ms  
+>Epsilon: 5.00%	Compression Ratio: 15.438	Execution Time: 12ms  >...
 
 ## Notes
 - It is recommended to use Sim-Piece with Variable Byte encoding.

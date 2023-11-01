@@ -1,7 +1,5 @@
 package gr.aueb.delorean.util;
 
-import gr.aueb.delorean.util.Point;
-
 import java.util.List;
 
 public class TimeSeries {

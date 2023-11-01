@@ -6,14 +6,14 @@ import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
 
 public class TimeSeriesReader {
-    public static TimeSeries getTimeSeries(InputStream inputStream, String delimiter) {
+    public static TimeSeries getTimeSeries(InputStream inputStream, String delimiter, boolean gzip) {
         ArrayList<Point> ts = new ArrayList<>();
         double max = Double.MIN_VALUE;
         double min = Double.MAX_VALUE;
 
         try {
-            InputStream gzipStream = new GZIPInputStream(inputStream);
-            Reader decoder = new InputStreamReader(gzipStream, StandardCharsets.UTF_8);
+            if (gzip) inputStream = new GZIPInputStream(inputStream);
+            Reader decoder = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
             BufferedReader bufferedReader = new BufferedReader(decoder);
 
             String line;

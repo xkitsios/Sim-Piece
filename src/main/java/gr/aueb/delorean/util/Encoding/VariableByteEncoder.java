@@ -23,22 +23,22 @@ public class VariableByteEncoder {
         if (val < (1 << 7)) {
             outputStream.write((byte) (val | (1 << 7)));
         } else if (val < (1 << 14)) {
-            outputStream.write((byte) extract7bits(0, val));
+            outputStream.write(extract7bits(0, val));
             outputStream.write((byte) (extract7bitsmaskless(1, (val)) | (1 << 7)));
         } else if (val < (1 << 21)) {
-            outputStream.write((byte) extract7bits(0, val));
-            outputStream.write((byte) extract7bits(1, val));
+            outputStream.write(extract7bits(0, val));
+            outputStream.write(extract7bits(1, val));
             outputStream.write((byte) (extract7bitsmaskless(2, (val)) | (1 << 7)));
         } else if (val < (1 << 28)) {
-            outputStream.write((byte) extract7bits(0, val));
-            outputStream.write((byte) extract7bits(1, val));
-            outputStream.write((byte) extract7bits(2, val));
+            outputStream.write(extract7bits(0, val));
+            outputStream.write(extract7bits(1, val));
+            outputStream.write(extract7bits(2, val));
             outputStream.write((byte) (extract7bitsmaskless(3, (val)) | (1 << 7)));
         } else {
-            outputStream.write((byte) extract7bits(0, val));
-            outputStream.write((byte) extract7bits(1, val));
-            outputStream.write((byte) extract7bits(2, val));
-            outputStream.write((byte) extract7bits(3, val));
+            outputStream.write(extract7bits(0, val));
+            outputStream.write(extract7bits(1, val));
+            outputStream.write(extract7bits(2, val));
+            outputStream.write(extract7bits(3, val));
             outputStream.write((byte) (extract7bitsmaskless(4, (val)) | (1 << 7)));
         }
     }
@@ -49,23 +49,19 @@ public class VariableByteEncoder {
 
         in = (byte) inputStream.read();
         number = in & 0x7F;
-        if (in < 0)
-            return number;
+        if (in < 0) return number;
 
         in = (byte) inputStream.read();
         number = ((in & 0x7F) << 7) | number;
-        if (in < 0)
-            return number;
+        if (in < 0) return number;
 
         in = (byte) inputStream.read();
         number = ((in & 0x7F) << 14) | number;
-        if (in < 0 )
-            return number;
+        if (in < 0) return number;
 
         in = (byte) inputStream.read();
         number = ((in & 0x7F) << 21) | number;
-        if (in < 0)
-            return number;
+        if (in < 0) return number;
 
         number = (((byte) inputStream.read() & 0x7F) << 28) | number;
 

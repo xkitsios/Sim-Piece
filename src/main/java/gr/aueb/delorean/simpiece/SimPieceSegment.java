@@ -2,11 +2,11 @@ package gr.aueb.delorean.simpiece;
 
 public class SimPieceSegment {
 
-    long initTimestamp;
-    double aMin;
-    double aMax;
-    double a;
-    double b;
+    private final long initTimestamp;
+    private final double aMin;
+    private final double aMax;
+    private final double a;
+    private final double b;
 
     public SimPieceSegment(long initTimestamp, double a, double b) {
         this(initTimestamp, a, a, b);
