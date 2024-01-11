@@ -14,8 +14,16 @@ import java.util.*;
 public class SimPiece {
     private ArrayList<SimPieceSegment> segments;
 
+    private List<Double> diffs = new LinkedList<>();
+
+    private List<Double> diffsGroups = new LinkedList<>();
+    private List<Integer> sizes = new LinkedList<>();
+
+    private List<Integer> sizesGroups = new LinkedList<>();
     private double epsilon;
     private long lastTimeStamp;
+
+    private int previousNoOfGroups = 0;
 
     public SimPiece(List<Point> points, double epsilon) throws IOException {
         if (points.isEmpty()) throw new IOException();
@@ -34,6 +42,7 @@ public class SimPiece {
     }
 
     private int createSegment(int startIdx, List<Point> points, ArrayList<SimPieceSegment> segments) {
+//        System.out.println("Starting segment " + segments.size());
         long initTimestamp = points.get(startIdx).getTimestamp();
         double b = quantization(points.get(startIdx).getValue());
         if (startIdx + 1 == points.size()) {
@@ -42,37 +51,190 @@ public class SimPiece {
         }
         double aMax = ((points.get(startIdx + 1).getValue() + epsilon) - b) / (points.get(startIdx + 1).getTimestamp() - initTimestamp);
         double aMin = ((points.get(startIdx + 1).getValue() - epsilon) - b) / (points.get(startIdx + 1).getTimestamp() - initTimestamp);
+//      System.out.println(aMax-aMin);
+        double diff = aMax-aMin;
         if (startIdx + 2 == points.size()) {
             segments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
             return startIdx + 2;
         }
 
+        int groups, startGroups = 0;
+        List<State> states = new ArrayList<>();
         for (int idx = startIdx + 2; idx < points.size(); idx++) {
+//            if (idx - startIdx == 3) {
+//                groups = findNumberOfGroups(initTimestamp, aMax, aMin, b, segments);
+//                startGroups = groups;
+//            }
             double upValue = points.get(idx).getValue() + epsilon;
             double downValue = points.get(idx).getValue() - epsilon;
 
             double upLim = aMax * (points.get(idx).getTimestamp() - initTimestamp) + b;
             double downLim = aMin * (points.get(idx).getTimestamp() - initTimestamp) + b;
+
+            double aMaxTemp = aMax, aMinTemp = aMin;
+            if (upValue < upLim)
+                aMaxTemp = Math.max((upValue - b) / (points.get(idx).getTimestamp() - initTimestamp), aMin);
+            if (downValue > downLim)
+                aMinTemp = Math.min((downValue - b) / (points.get(idx).getTimestamp() - initTimestamp), aMax);
+            states.add(new State(idx, aMin, aMax));
             if ((downValue > upLim || upValue < downLim)) {
+                diffs.add(aMax-aMin);
+                sizes.add(idx - startIdx);
+                int newGroups = findNumberOfGroups(initTimestamp, aMax, aMin, b, segments);
+                if (newGroups > previousNoOfGroups) {
+                    diffsGroups.add(aMax-aMin);
+                    sizesGroups.add(idx - startIdx);
+//                    System.out.println(String.format("Segments: %d, Groups: %d, Size: %d", segments.size(), newGroups, (idx - startIdx)));
+                    State state = binarySearch(states, previousNoOfGroups, initTimestamp, b, segments);
+//                    if (idx > state.idx) {
+//                        System.out.println(String.format("%d - %d - %f", (idx - startIdx), (state.idx - startIdx) , ((double) state.idx - startIdx) / (idx - startIdx)));
+//                    }
+                    previousNoOfGroups = newGroups;
+                    segments.add(new SimPieceSegment(initTimestamp, state.aMin, state.aMax, b));
+                    return state.idx;
+                }
+                previousNoOfGroups = newGroups;
                 segments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
                 return idx;
             }
-
+            diff = aMax-aMin;
             if (upValue < upLim)
                 aMax = Math.max((upValue - b) / (points.get(idx).getTimestamp() - initTimestamp), aMin);
             if (downValue > downLim)
                 aMin = Math.min((downValue - b) / (points.get(idx).getTimestamp() - initTimestamp), aMax);
+            diff = diff - (aMax-aMin);
         }
         segments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
 
         return points.size();
     }
 
+    private State binarySearch(List<State> states, int previousNoOfGroups, long initTimestamp, double b, ArrayList<SimPieceSegment> segments) {
+        ArrayList<SimPieceSegment> oldSegments = mergePerB(segments);
+        TreeMap<Double, HashMap<Double, ArrayList<Long>>> tree = new TreeMap<>();
+        for (SimPieceSegment segment : oldSegments) {
+            double a = segment.getA();
+            double bi = segment.getB();
+            long t = segment.getInitTimestamp();
+            if (!tree.containsKey(bi)) tree.put(bi, new HashMap<>());
+            if (!tree.get(bi).containsKey(a)) tree.get(bi).put(a, new ArrayList<>());
+            tree.get(bi).get(a).add(t);
+        }
+
+        int high = states.size() - 1;
+        int low = high / 2;
+        State found = states.get(high);
+
+        while (low <= high) {
+            int mid = low  + ((high - low) / 2);
+            State state = states.get(mid);
+            if (findNumberOfGroups(initTimestamp, state.aMax, state.aMin, b, segments, previousNoOfGroups, oldSegments, tree)) {
+                break;
+            } else {
+                found = state;
+                low = mid + 1;
+            }
+        }
+        return found;
+    }
+
+    private class State {
+
+        int idx;
+
+        double aMin;
+
+        double aMax;
+
+        public State(final int idx, final double aMin, final double aMax) {
+            this.idx = idx;
+            this.aMin = aMin;
+            this.aMax = aMax;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%d, %f, %f, %f", idx, aMin, aMax, aMax - aMin);
+        }
+    }
+    private int findNumberOfGroups(long initTimestamp, double aMax, double aMin, double b, ArrayList<SimPieceSegment> segments) {
+        ArrayList<SimPieceSegment> tempSegments = new ArrayList<>(segments);
+        tempSegments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
+        tempSegments = mergePerB(tempSegments);
+
+        TreeMap<Double, HashMap<Double, ArrayList<Long>>> input = new TreeMap<>();
+        for (SimPieceSegment segment : tempSegments) {
+            double a = segment.getA();
+            double bi = segment.getB();
+            long t = segment.getInitTimestamp();
+            if (!input.containsKey(bi)) input.put(bi, new HashMap<>());
+            if (!input.get(bi).containsKey(a)) input.get(bi).put(a, new ArrayList<>());
+            input.get(bi).get(a).add(t);
+        }
+        int groups = 0;
+        for (Map.Entry<Double, HashMap<Double, ArrayList<Long>>> bSegments : input.entrySet())
+            groups += bSegments.getValue().size();
+        return groups;
+    }
+
+    private boolean findNumberOfGroups(long initTimestamp, double aMax, double aMin, double b, ArrayList<SimPieceSegment> segments,
+                                       int previousNoOfGroups, ArrayList<SimPieceSegment> oldSegments,
+                                       TreeMap<Double, HashMap<Double, ArrayList<Long>>> tree) {
+        double alpha = oldSegments.stream().filter(s -> s.getB() == b && s.getAMin() <= aMax && s.getAMax() >= aMin).mapToDouble(s -> s.getAMax() - s.getAMin()).max().orElse(-1.0);
+
+        ArrayList<SimPieceSegment> tempSegments = new ArrayList<>(segments);
+        tempSegments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
+        tempSegments = mergePerB(tempSegments);
+        double value = 0;
+        TreeMap<Double, HashMap<Double, ArrayList<Long>>> input = new TreeMap<>();
+        for (SimPieceSegment segment : tempSegments) {
+            double a = segment.getA();
+            double bi = segment.getB();
+            long t = segment.getInitTimestamp();
+            if (initTimestamp == t) {
+//                System.out.println(String.format("A: %f, A_new: %f, B: %f, A/A_new: %f", alpha, (segment.getAMax() - segment.getAMin()), (aMax - aMin),
+//                        alpha / (segment.getAMax() - segment.getAMin())));
+                value = alpha / (segment.getAMax() - segment.getAMin());
+            }
+            if (!input.containsKey(bi)) input.put(bi, new HashMap<>());
+            if (!input.get(bi).containsKey(a)) input.get(bi).put(a, new ArrayList<>());
+            input.get(bi).get(a).add(t);
+        }
+        int groups = 0;
+        for (Map.Entry<Double, HashMap<Double, ArrayList<Long>>> bSegments : input.entrySet())
+            groups += bSegments.getValue().size();
+
+        return groups > previousNoOfGroups;// || value > 10;
+    }
+
+
+    private boolean additionalGroup(int groups, ArrayList<SimPieceSegment> segments, SimPieceSegment segment) {
+        ArrayList<SimPieceSegment> copy = new ArrayList<>(segments);
+        copy.add(segment);
+        return mergePerB(copy).size() > groups;
+    }
+
+    private boolean noOverlap(ArrayList<SimPieceSegment> segments, double b, double aMin, double aMax) {
+        if (segments.isEmpty()) {
+            return false;
+        }
+        int count = 0;
+        for (SimPieceSegment segment : segments) {
+            if (segment.getB() == b && aMax > segment.getAMin() &&  aMin < segment.getAMax()) {
+                count++;
+            }
+        }
+        if (count >= 1) {
+            return false;
+        }
+        return true;
+    }
+
     private ArrayList<SimPieceSegment> compress(List<Point> points) {
         ArrayList<SimPieceSegment> segments = new ArrayList<>();
         int currentIdx = 0;
         while (currentIdx < points.size()) currentIdx = createSegment(currentIdx, points, segments);
-
+        System.out.println(String.format("Avg. Interval: %f, Avg. Additional Group Interval: %f, Avg Segment Size: %f, Avg Additional Group Segment Size: %f", diffs.stream().mapToDouble(a -> a).average().getAsDouble(), diffsGroups.stream().mapToDouble(a -> a).average().getAsDouble(), sizes.stream().mapToInt(a -> a).average().getAsDouble(), sizesGroups.stream().mapToInt(a -> a).average().getAsDouble()));
         return segments;
     }
 

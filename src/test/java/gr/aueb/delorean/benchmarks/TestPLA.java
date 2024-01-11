@@ -101,22 +101,22 @@ public class TestPLA {
             for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
                 System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n", epsilonPct * 100, (double) ts.size / SimPiece(ts.data, ts.range * epsilonPct, false, false), duration.toMillis());
 
-            System.out.println("Sim-Piece Variable Byte");
-            for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
-                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n", epsilonPct * 100, (double) ts.size / SimPiece(ts.data, ts.range * epsilonPct, true, false), duration.toMillis());
-
-
-            System.out.println("Sim-Piece Variable Byte & ZStd");
-            for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
-                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n", epsilonPct * 100, (double) ts.size / SimPiece(ts.data, ts.range * epsilonPct, true, true), duration.toMillis());
-
-            System.out.println("Swing");
-            for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
-                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n", epsilonPct * 100, (double) ts.size / Swing(ts.data, ts.range * epsilonPct), duration.toMillis());
-
-            System.out.println("PMCMR");
-            for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
-                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n", epsilonPct * 100, (double) ts.size / PMCMR(ts.data, ts.range * epsilonPct), duration.toMillis());
+//            System.out.println("Sim-Piece Variable Byte");
+//            for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
+//                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n", epsilonPct * 100, (double) ts.size / SimPiece(ts.data, ts.range * epsilonPct, true, false), duration.toMillis());
+//
+//
+//            System.out.println("Sim-Piece Variable Byte & ZStd");
+//            for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
+//                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n", epsilonPct * 100, (double) ts.size / SimPiece(ts.data, ts.range * epsilonPct, true, true), duration.toMillis());
+//
+//            System.out.println("Swing");
+//            for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
+//                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n", epsilonPct * 100, (double) ts.size / Swing(ts.data, ts.range * epsilonPct), duration.toMillis());
+//
+//            System.out.println("PMCMR");
+//            for (double epsilonPct = epsilonStart; epsilonPct <= epsilonEnd; epsilonPct += epsilonStep)
+//                System.out.printf("Epsilon: %.2f%%\tCompression Ratio: %.3f\tExecution Time: %dms\n", epsilonPct * 100, (double) ts.size / PMCMR(ts.data, ts.range * epsilonPct), duration.toMillis());
 
             System.out.println();
         }
@@ -125,9 +125,9 @@ public class TestPLA {
 
     @Test
     public void TestCRAndTime() throws IOException {
-        double epsilonStart = 0.005;
+        double epsilonStart = 0.02;
         double epsilonStep = 0.005;
-        double epsilonEnd = 0.05;
+        double epsilonEnd = 0.02;
 
         String[] filenames = {"/Cricket.csv.gz", "/FaceFour.csv.gz", "/Lightning.csv.gz", "/MoteStrain.csv.gz", "/Wafer.csv.gz", "/WindSpeed.csv.gz", "/WindDirection.csv.gz", "/Pressure.csv.gz",};
 
