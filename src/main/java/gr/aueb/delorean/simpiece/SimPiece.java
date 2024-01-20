@@ -14,12 +14,9 @@ import java.util.*;
 public class SimPiece {
     private ArrayList<SimPieceSegment> segments;
 
-    private List<Double> diffs = new LinkedList<>();
+    private ArrayList<SimPieceSegment> bestSegments;
 
-    private List<Double> diffsGroups = new LinkedList<>();
-    private List<Integer> sizes = new LinkedList<>();
-
-    private List<Integer> sizesGroups = new LinkedList<>();
+    private int bestSize = Integer.MAX_VALUE;
     private double epsilon;
     private long lastTimeStamp;
 
@@ -30,7 +27,7 @@ public class SimPiece {
 
         this.epsilon = epsilon;
         this.lastTimeStamp = points.get(points.size() - 1).getTimestamp();
-        this.segments = mergePerB(compress(points));
+        this.segments = compress(points);
     }
 
     public SimPiece(byte[] bytes, boolean variableByte, boolean zstd) throws IOException {
@@ -41,73 +38,43 @@ public class SimPiece {
         return Math.round(value / epsilon) * epsilon;
     }
 
-    private int createSegment(int startIdx, List<Point> points, ArrayList<SimPieceSegment> segments) {
-//        System.out.println("Starting segment " + segments.size());
+    private List<SimPieceSegment> createSegmentsFromStartIdx(int startIdx, List<Point> points) {
+        List<SimPieceSegment> segments = new LinkedList<>();
+
         long initTimestamp = points.get(startIdx).getTimestamp();
         double b = quantization(points.get(startIdx).getValue());
         if (startIdx + 1 == points.size()) {
             segments.add(new SimPieceSegment(initTimestamp, -Double.MAX_VALUE, Double.MAX_VALUE, b));
-            return startIdx + 1;
+            return segments;
         }
         double aMax = ((points.get(startIdx + 1).getValue() + epsilon) - b) / (points.get(startIdx + 1).getTimestamp() - initTimestamp);
         double aMin = ((points.get(startIdx + 1).getValue() - epsilon) - b) / (points.get(startIdx + 1).getTimestamp() - initTimestamp);
-//      System.out.println(aMax-aMin);
         double diff = aMax-aMin;
         if (startIdx + 2 == points.size()) {
             segments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
-            return startIdx + 2;
+            return segments;
         }
 
-        int groups, startGroups = 0;
-        List<State> states = new ArrayList<>();
         for (int idx = startIdx + 2; idx < points.size(); idx++) {
-//            if (idx - startIdx == 3) {
-//                groups = findNumberOfGroups(initTimestamp, aMax, aMin, b, segments);
-//                startGroups = groups;
-//            }
             double upValue = points.get(idx).getValue() + epsilon;
             double downValue = points.get(idx).getValue() - epsilon;
 
             double upLim = aMax * (points.get(idx).getTimestamp() - initTimestamp) + b;
             double downLim = aMin * (points.get(idx).getTimestamp() - initTimestamp) + b;
-
-            double aMaxTemp = aMax, aMinTemp = aMin;
-            if (upValue < upLim)
-                aMaxTemp = Math.max((upValue - b) / (points.get(idx).getTimestamp() - initTimestamp), aMin);
-            if (downValue > downLim)
-                aMinTemp = Math.min((downValue - b) / (points.get(idx).getTimestamp() - initTimestamp), aMax);
-            states.add(new State(idx, aMin, aMax));
+            segments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
             if ((downValue > upLim || upValue < downLim)) {
-                diffs.add(aMax-aMin);
-                sizes.add(idx - startIdx);
-                int newGroups = findNumberOfGroups(initTimestamp, aMax, aMin, b, segments);
-                if (newGroups > previousNoOfGroups) {
-                    diffsGroups.add(aMax-aMin);
-                    sizesGroups.add(idx - startIdx);
-//                    System.out.println(String.format("Segments: %d, Groups: %d, Size: %d", segments.size(), newGroups, (idx - startIdx)));
-                    State state = binarySearch(states, previousNoOfGroups, initTimestamp, b, segments);
-//                    if (idx > state.idx) {
-//                        System.out.println(String.format("%d - %d - %f", (idx - startIdx), (state.idx - startIdx) , ((double) state.idx - startIdx) / (idx - startIdx)));
-//                    }
-                    previousNoOfGroups = newGroups;
-                    segments.add(new SimPieceSegment(initTimestamp, state.aMin, state.aMax, b));
-                    return state.idx;
-                }
-                previousNoOfGroups = newGroups;
-                segments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
-                return idx;
+                return segments;
             }
-            diff = aMax-aMin;
             if (upValue < upLim)
                 aMax = Math.max((upValue - b) / (points.get(idx).getTimestamp() - initTimestamp), aMin);
             if (downValue > downLim)
                 aMin = Math.min((downValue - b) / (points.get(idx).getTimestamp() - initTimestamp), aMax);
-            diff = diff - (aMax-aMin);
         }
         segments.add(new SimPieceSegment(initTimestamp, aMin, aMax, b));
 
-        return points.size();
+        return segments;
     }
+
 
     private State binarySearch(List<State> states, int previousNoOfGroups, long initTimestamp, double b, ArrayList<SimPieceSegment> segments) {
         ArrayList<SimPieceSegment> oldSegments = mergePerB(segments);
@@ -231,11 +198,54 @@ public class SimPiece {
     }
 
     private ArrayList<SimPieceSegment> compress(List<Point> points) {
-        ArrayList<SimPieceSegment> segments = new ArrayList<>();
-        int currentIdx = 0;
-        while (currentIdx < points.size()) currentIdx = createSegment(currentIdx, points, segments);
-        System.out.println(String.format("Avg. Interval: %f, Avg. Additional Group Interval: %f, Avg Segment Size: %f, Avg Additional Group Segment Size: %f", diffs.stream().mapToDouble(a -> a).average().getAsDouble(), diffsGroups.stream().mapToDouble(a -> a).average().getAsDouble(), sizes.stream().mapToInt(a -> a).average().getAsDouble(), sizesGroups.stream().mapToInt(a -> a).average().getAsDouble()));
+        Map<Integer, List<SimPieceSegment>> possibleSegments = new TreeMap<>();
+        for (int i = 0; i <= points.size() - 1; i++) {
+            List<SimPieceSegment> segmentsFromStartIdx = createSegmentsFromStartIdx(i, points);
+            System.out.println(String.format("StartIdx: %d: %d", i, segmentsFromStartIdx.size()));
+            possibleSegments.put(i, segmentsFromStartIdx);
+        }
+        getCandidates(possibleSegments, 0, "", points.size());
+
         return segments;
+    }
+
+    private void getCandidates(Map<Integer, List<SimPieceSegment>> possibleSegments, int idx, String sb, int size) {
+        if (idx >= size) {
+            calculateAndPrintSize(sb, possibleSegments);
+            return;
+        }
+        List<SimPieceSegment> candidates = possibleSegments.get(idx);
+        int counter = idx + 1;
+        for (SimPieceSegment candidate : candidates) {
+            String segment = sb + String.format("%d-%d,", idx, counter - idx);
+            if (counter < size) {
+                getCandidates(possibleSegments, counter + 1, segment, size);
+            } else {
+                calculateAndPrintSize(segment, possibleSegments);
+            }
+            counter++;
+        }
+    }
+
+    private void calculateAndPrintSize(String segment, Map<Integer, List<SimPieceSegment>> possibleSegments) {
+        this.segments = new ArrayList<>();
+        String[] segmentSplits = segment.split(",");
+        for (String segmentSplit : segmentSplits) {
+            if (!segmentSplit.isEmpty()) {
+                String[] split = segmentSplit.split("-");
+                this.segments.add(possibleSegments.get(Integer.parseInt(split[0])).get(Integer.parseInt(split[1])-1));
+            }
+        }
+        try {
+            int size = toByteArray(false, false).length;
+            if (size < bestSize) {
+                this.bestSize = size;
+                this.bestSegments = this.segments;
+                System.out.println(size + ": " + segment);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private ArrayList<SimPieceSegment> mergePerB(ArrayList<SimPieceSegment> segments) {
