@@ -129,8 +129,8 @@ public class TestPLA {
         double epsilonStep = 0.005;
         double epsilonEnd = 0.02;
 
-        String[] filenames = {"/Cricket.csv.gz", "/FaceFour.csv.gz", "/Lightning.csv.gz", "/MoteStrain.csv.gz", "/Wafer.csv.gz", "/WindSpeed.csv.gz", "/WindDirection.csv.gz", "/Pressure.csv.gz",};
-
+//        String[] filenames = {"/Cricket.csv.gz", "/FaceFour.csv.gz", "/Lightning.csv.gz", "/MoteStrain.csv.gz", "/Wafer.csv.gz", "/WindSpeed.csv.gz", "/WindDirection.csv.gz", "/Pressure.csv.gz",};
+        String[] filenames = {"/Cricket-sample.csv.gz",};
         run(filenames, epsilonStart, epsilonStep, epsilonEnd);
     }
 }
