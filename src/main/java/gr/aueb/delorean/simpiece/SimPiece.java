@@ -236,14 +236,14 @@ public class SimPiece {
                 this.segments.add(possibleSegments.get(Integer.parseInt(split[0])).get(Integer.parseInt(split[1])-1));
             }
         }
+        this.segments = mergePerB(this.segments);
         try {
             int size = toByteArray(false, false).length;
-            if (size < bestSize) {
+            if (size <= bestSize) {
                 this.bestSize = size;
                 this.bestSegments = this.segments;
                 System.out.println(size + ": " + segment);
             }
-            System.out.println(size + ": " + segment);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
