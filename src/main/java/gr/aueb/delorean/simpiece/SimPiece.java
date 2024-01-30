@@ -206,7 +206,7 @@ public class SimPiece {
         }
         getCandidates(possibleSegments, 0, "", points.size());
 
-        return segments;
+        return bestSegments;
     }
 
     private void getCandidates(Map<Integer, List<SimPieceSegment>> possibleSegments, int idx, String sb, int size) {
@@ -244,6 +244,7 @@ public class SimPiece {
                 this.bestSegments = this.segments;
                 System.out.printf("CR: %.2f (%d bytes) : %s\n", 60 * 8.0 / size, size, segment);
             }
+//            System.out.printf("CR: %.2f (%d bytes) : %s\n", 60 * 8.0 / size, size, segment);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
