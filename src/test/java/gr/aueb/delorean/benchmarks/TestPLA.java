@@ -125,13 +125,15 @@ public class TestPLA {
 
     @Test
     public void TestCRAndTime() throws IOException {
-        double epsilonStart = 0.02;
+        double epsilonStart = 0.005;
         double epsilonStep = 0.005;
-        double epsilonEnd = 0.02;
+        double epsilonEnd = 0.05;
 
 //        String[] filenames = {"/Cricket.csv.gz", "/FaceFour.csv.gz", "/Lightning.csv.gz", "/MoteStrain.csv.gz", "/Wafer.csv.gz", "/WindSpeed.csv.gz", "/WindDirection.csv.gz", "/Pressure.csv.gz",};
-        String[] filenames = {"/Cricket-sample.csv.gz"};
-
+        String[] filenames = new String[100];
+        for (int i=0; i<100; i++) {
+            filenames[i] = String.format("/Cricket-%d.csv.gz", i+1);
+        }
         run(filenames, epsilonStart, epsilonStep, epsilonEnd);
     }
 }
