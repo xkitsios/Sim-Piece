@@ -243,6 +243,7 @@ public class SimPiece {
                 this.bestSegments = this.segments;
                 System.out.println(size + ": " + segment);
             }
+            System.out.println(size + ": " + segment);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
