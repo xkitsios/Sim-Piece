@@ -242,7 +242,7 @@ public class SimPiece {
             if (size <= bestSize) {
                 this.bestSize = size;
                 this.bestSegments = this.segments;
-                System.out.printf("CR: %.2f (%d bytes) : %s\n", 50 * 8.0 / size, size, segment);
+                System.out.printf("CR: %.2f (%d bytes) : %s\n", 60 * 8.0 / size, size, segment);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
