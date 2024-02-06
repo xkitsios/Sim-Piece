@@ -201,53 +201,38 @@ public class SimPiece {
         Map<Integer, List<SimPieceSegment>> possibleSegments = new TreeMap<>();
         for (int i = 0; i <= points.size() - 1; i++) {
             List<SimPieceSegment> segmentsFromStartIdx = createSegmentsFromStartIdx(i, points);
-            System.out.println(String.format("StartIdx: %d: %d", i, segmentsFromStartIdx.size()));
+//            System.out.println(String.format("StartIdx: %d: %d", i, segmentsFromStartIdx.size()));
             possibleSegments.put(i, segmentsFromStartIdx);
         }
-        getCandidates(possibleSegments, 0, "", points.size());
-
-        return bestSegments;
-    }
-
-    private void getCandidates(Map<Integer, List<SimPieceSegment>> possibleSegments, int idx, String sb, int size) {
-        if (idx >= size) {
-            calculateAndPrintSize(sb, possibleSegments);
-            return;
-        }
-        List<SimPieceSegment> candidates = possibleSegments.get(idx);
-        int counter = idx + 1;
-        for (SimPieceSegment candidate : candidates) {
-            String segment = sb + String.format("%d-%d,", idx, counter - idx);
-            if (counter < size) {
-                getCandidates(possibleSegments, counter + 1, segment, size);
-            } else {
-                calculateAndPrintSize(segment, possibleSegments);
-            }
-            counter++;
-        }
-    }
-
-    private void calculateAndPrintSize(String segment, Map<Integer, List<SimPieceSegment>> possibleSegments) {
         this.segments = new ArrayList<>();
-        String[] segmentSplits = segment.split(",");
-        for (String segmentSplit : segmentSplits) {
-            if (!segmentSplit.isEmpty()) {
-                String[] split = segmentSplit.split("-");
-                this.segments.add(possibleSegments.get(Integer.parseInt(split[0])).get(Integer.parseInt(split[1])-1));
-            }
+        int startIdx = 0;
+        while (startIdx < points.size()) {
+//            System.out.println("Start:" + startIdx);
+            startIdx = addSegment(startIdx, possibleSegments);
         }
         this.segments = mergePerB(this.segments);
-        try {
-            int size = toByteArray(false, false).length;
-            if (size <= bestSize) {
-                this.bestSize = size;
-                this.bestSegments = this.segments;
-                System.out.printf("CR: %.2f (%d bytes) : %s\n", 60 * 8.0 / size, size, segment);
+        return segments;
+    }
+
+    private int addSegment(int startIdx, Map<Integer, List<SimPieceSegment>> possibleSegments) {
+//        System.out.println("Getting: " + startIdx);
+//        System.out.println("Size: " + possibleSegments.get(startIdx).size());
+        int firstSegments = possibleSegments.get(startIdx).size();
+        int index = 0;
+        if (startIdx + 2 < possibleSegments.size()) {
+            int best = 2 + possibleSegments.get(startIdx + 2).size();;
+//            System.out.println(0 + ": " + startIdx + " " + best);
+            for (int i=1; i<firstSegments && startIdx + i + 2 < possibleSegments.size(); i++) {
+//                System.out.println(i + ": " + startIdx + " " + best);
+                int reach = 2 + i + possibleSegments.get(startIdx + i + 2).size();
+                if (reach > best) {
+                    best = reach;
+                    index = i;
+                }
             }
-//            System.out.printf("CR: %.2f (%d bytes) : %s\n", 60 * 8.0 / size, size, segment);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
+        this.segments.add(possibleSegments.get(startIdx).get(index));
+        return startIdx + index + 1 + 1;
     }
 
     private ArrayList<SimPieceSegment> mergePerB(ArrayList<SimPieceSegment> segments) {
