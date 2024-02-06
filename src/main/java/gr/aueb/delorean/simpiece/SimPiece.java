@@ -205,13 +205,54 @@ public class SimPiece {
             possibleSegments.put(i, segmentsFromStartIdx);
         }
         this.segments = new ArrayList<>();
-        int startIdx = 0;
-        while (startIdx < points.size()) {
-//            System.out.println("Start:" + startIdx);
-            startIdx = addSegment(startIdx, possibleSegments);
+        int[][] best = new int[points.size()][];
+        best[points.size() - 1] = new int[]{1, 1};
+        for (int i=points.size()-2; i>=0; i--) {
+            findBest(i, possibleSegments, best);
         }
+
+        int start = 0;
+        int count = 0;
+        while (start < points.size()) {
+            this.segments.add(possibleSegments.get(start).get(best[start][1]-1));
+            start += best[start][1] + 1;
+            count++;
+        }
+
+//        int startIdx = 0;
+//        while (startIdx < points.size()) {
+//            startIdx = addSegment(startIdx, possibleSegments);
+//        }
+
+        System.out.println("Best: " + best[0][0] + " Used: " + this.segments.size());
+
+
         this.segments = mergePerB(this.segments);
         return segments;
+    }
+
+    private int findBest(int start, Map<Integer, List<SimPieceSegment>> possibleSegments, int[][] best) {
+//        System.out.println("CALLED: " + start + " - " + best.length);
+        if (start >= possibleSegments.size()) {
+            return 0;
+        }
+        if (best[start] != null) {
+            return best[start][0];
+        }
+        else {
+            int bestResult = Integer.MAX_VALUE;
+            int bestIndex = 0;
+            for (int i=1; i<= possibleSegments.get(start).size(); i++) {
+                int result = 1 + findBest(start + i + 1, possibleSegments, best);
+                if (result < bestResult) {
+                    bestResult = result;
+                    bestIndex = i;
+                }
+            }
+            best[start] = new int[]{bestResult, bestIndex};
+//            System.out.println("Best for: " + start + " is: " + bestResult);
+            return bestResult;
+        }
     }
 
     private int addSegment(int startIdx, Map<Integer, List<SimPieceSegment>> possibleSegments) {
